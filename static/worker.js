@@ -136,6 +136,10 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
         centroid.ySum += cy * w;
         centroid.wSum += w;
         centroid.count += 1;
+        // Pixels escaping very late behave indistinguishably from interior
+        // ones at this maxIter; if the view is dominated by them the
+        // image looks saturated (e.g. all yellow).
+        if (i > maxIter * 0.92) centroid.saturated += 1;
       }
       const smooth = i + 1 - Math.log2(0.5 * Math.log2(zx2 + zy2));
       return packedColor(smooth, maxIter, lut);
@@ -240,7 +244,7 @@ function createRenderJob(params) {
   // animation to pan toward boundary detail and avoid drifting into
   // featureless regions.
   const centroid = (!benchmark && params.previewScale <= 1)
-    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0 }
+    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, saturated: 0 }
     : null;
 
   const aaMode = params.aaMode || "adaptive";
@@ -300,10 +304,13 @@ function finishRender(job) {
       ? {
           x: job.centroid.xSum / job.centroid.wSum,
           y: job.centroid.ySum / job.centroid.wSum,
-          // Fraction of pixels that contributed to the centroid (i.e. were
-          // close enough to the boundary). Used by the main thread to
-          // decide whether the view still contains enough detail.
-          coverage: job.centroid.count / Math.max(1, job.centroid.pixels)
+          // Fraction of pixels close to the boundary. Used by the main
+          // thread to detect featureless views.
+          coverage: job.centroid.count / Math.max(1, job.centroid.pixels),
+          // Fraction of pixels saturated near maxIter. High values mean
+          // the image is washed out (interior dive or insufficient
+          // maxIter at this depth) and the centroid is unreliable.
+          saturation: job.centroid.saturated / Math.max(1, job.centroid.pixels)
         }
       : null,
     buffer: job.data.buffer

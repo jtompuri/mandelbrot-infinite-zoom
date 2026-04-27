@@ -146,9 +146,14 @@ function zoomStep() {
   // sit around 1-3 % even at the surface, so the threshold is set low and
   // we require several consecutive starved frames before assuming the view
   // is genuinely featureless.
+  // Saturation = fraction of pixels near maxIter. High values mean the
+  // image is washed out (interior dive) and pan/zoom should back off.
   const COVERAGE_LOW = 0.005;
+  const SATURATION_HIGH = 0.5;
   const RECOVERY_TRIGGER = 4;
-  const frameHasDetail = centroid !== null && centroid.coverage >= COVERAGE_LOW;
+  const frameHasDetail = centroid !== null
+    && centroid.coverage >= COVERAGE_LOW
+    && centroid.saturation < SATURATION_HIGH;
 
   if (frameHasDetail) recoveryFrames = 0;
   else recoveryFrames += 1;
