@@ -30,6 +30,7 @@ const worker = new Worker("/worker.js");
 let centerX = -0.743643887037151;
 let centerY = 0.13182590420533;
 let scale = 3.15;
+let pendingHashUpdate = null;
 let animating = false;
 let frameTimes = [];
 let renderToken = 0;
@@ -43,6 +44,54 @@ const productionResolvers = new Map();
 
 function formatAaLabel(samples) {
   return samples === 1 ? "Off" : `${samples}x`;
+}
+
+function readHashState() {
+  const hash = location.hash.replace(/^#/, "");
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  const x = Number(params.get("x"));
+  const y = Number(params.get("y"));
+  const s = Number(params.get("s"));
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(s) || s <= 0) return null;
+  return {
+    x, y, s,
+    q: Number(params.get("q")) || null,
+    aa: Number(params.get("aa")) || null,
+    c: params.get("c") || null
+  };
+}
+
+function applyHashState(state) {
+  centerX = state.x;
+  centerY = state.y;
+  scale = state.s;
+  if (state.q && state.q >= Number(qualityInput.min) && state.q <= Number(qualityInput.max)) {
+    qualityInput.value = String(state.q);
+    qualityValue.textContent = qualityInput.value;
+  }
+  if (state.aa && [...antialiasSelect.options].some((o) => Number(o.value) === state.aa)) {
+    antialiasSelect.value = String(state.aa);
+  }
+  if (state.c && [...colormapSelect.options].some((o) => o.value === state.c)) {
+    colormapSelect.value = state.c;
+  }
+}
+
+function writeHashState() {
+  // Coalesce updates so rapid renders (e.g. animation) don't churn history.
+  if (pendingHashUpdate !== null) return;
+  pendingHashUpdate = setTimeout(() => {
+    pendingHashUpdate = null;
+    const params = new URLSearchParams();
+    params.set("x", centerX.toPrecision(15));
+    params.set("y", centerY.toPrecision(15));
+    params.set("s", scale.toPrecision(8));
+    params.set("q", qualityInput.value);
+    params.set("aa", antialiasSelect.value);
+    params.set("c", colormapSelect.value);
+    history.replaceState(null, "", `#${params.toString()}`);
+  }, 250);
 }
 
 function fitCanvas() {
@@ -141,6 +190,7 @@ function showRenderedFrame(message) {
   const average = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
   fps.textContent = `${(1000 / average).toFixed(1)} fps`;
   updateFinalStatus(message.maxIter, message.samples);
+  writeHashState();
 
   if (animating) requestAnimationFrame(zoomStep);
 }
@@ -483,4 +533,10 @@ canvas.addEventListener("wheel", (event) => {
 }, { passive: false });
 
 addEventListener("resize", fitCanvas);
+
+const initialHashState = readHashState();
+if (initialHashState !== null) {
+  applyHashState(initialHashState);
+}
+
 fitCanvas();
