@@ -30,6 +30,7 @@ const worker = new Worker("/worker.js");
 let centerX = -0.743643887037151;
 let centerY = 0.13182590420533;
 let scale = 3.15;
+let pendingHashUpdate = null;
 let animating = false;
 let frameTimes = [];
 let renderToken = 0;
@@ -45,6 +46,54 @@ function formatAaLabel(samples) {
   return samples === 1 ? "Off" : `${samples}x`;
 }
 
+function readHashState() {
+  const hash = location.hash.replace(/^#/, "");
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  const x = Number(params.get("x"));
+  const y = Number(params.get("y"));
+  const s = Number(params.get("s"));
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(s) || s <= 0) return null;
+  return {
+    x, y, s,
+    q: Number(params.get("q")) || null,
+    aa: Number(params.get("aa")) || null,
+    c: params.get("c") || null
+  };
+}
+
+function applyHashState(state) {
+  centerX = state.x;
+  centerY = state.y;
+  scale = state.s;
+  if (state.q && state.q >= Number(qualityInput.min) && state.q <= Number(qualityInput.max)) {
+    qualityInput.value = String(state.q);
+    qualityValue.textContent = qualityInput.value;
+  }
+  if (state.aa && [...antialiasSelect.options].some((o) => Number(o.value) === state.aa)) {
+    antialiasSelect.value = String(state.aa);
+  }
+  if (state.c && [...colormapSelect.options].some((o) => o.value === state.c)) {
+    colormapSelect.value = state.c;
+  }
+}
+
+function writeHashState() {
+  // Coalesce updates so rapid renders (e.g. animation) don't churn history.
+  if (pendingHashUpdate !== null) return;
+  pendingHashUpdate = setTimeout(() => {
+    pendingHashUpdate = null;
+    const params = new URLSearchParams();
+    params.set("x", centerX.toPrecision(15));
+    params.set("y", centerY.toPrecision(15));
+    params.set("s", scale.toPrecision(8));
+    params.set("q", qualityInput.value);
+    params.set("aa", antialiasSelect.value);
+    params.set("c", colormapSelect.value);
+    history.replaceState(null, "", `#${params.toString()}`);
+  }, 250);
+}
+
 function fitCanvas() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const width = Math.floor(innerWidth * dpr);
@@ -58,12 +107,25 @@ function fitCanvas() {
   }
 }
 
+// Auto-scale maxIter with zoom depth. Base quality from the slider acts as
+// a multiplier on a depth-based budget so that deep zooms get the iteration
+// headroom they need to resolve boundary detail without saturating. The
+// growth rate is intentionally gentle so interactive zoom stays responsive.
+function effectiveMaxIter() {
+  const base = Number(qualityInput.value);
+  if (scale >= 3.15) return base;
+  const depth = Math.log10(3.15 / scale);
+  const factor = 1 + 0.3 * depth;
+  return Math.round(base * factor);
+}
+
 function render() {
   const token = ++renderToken;
   renderStarted = performance.now();
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
-  meter.textContent = `rendering | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+  const maxIter = effectiveMaxIter();
+  meter.textContent = `rendering | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
     type: "render",
@@ -73,14 +135,14 @@ function render() {
     centerX,
     centerY,
     scale,
-    maxIter: Number(qualityInput.value),
+    maxIter,
     samples,
     aaMode,
     colormap: colormapSelect.value
   };
 
   if (!hasFullFrame) {
-    meter.textContent = `rendering preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+    meter.textContent = `rendering preview | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
     worker.postMessage({ ...params, phase: "preview", previewScale: 4 });
   }
   worker.postMessage({ ...params, phase: "full", previewScale: 1 });
@@ -141,6 +203,7 @@ function showRenderedFrame(message) {
   const average = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
   fps.textContent = `${(1000 / average).toFixed(1)} fps`;
   updateFinalStatus(message.maxIter, message.samples);
+  writeHashState();
 
   if (animating) requestAnimationFrame(zoomStep);
 }
@@ -418,8 +481,16 @@ zoomResetButton.addEventListener("click", () => {
   render();
 });
 
+function panBy(fractionX, fractionY) {
+  const aspect = canvas.width / canvas.height;
+  centerX += fractionX * scale * aspect;
+  centerY += fractionY * scale;
+  render();
+}
+
 addEventListener("keydown", (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+  const step = event.shiftKey ? 0.2 : 0.075;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
     zoomBy(0.5);
@@ -430,6 +501,18 @@ addEventListener("keydown", (event) => {
     event.preventDefault();
     scale = 3.15;
     render();
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    panBy(-step, 0);
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    panBy(step, 0);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    panBy(0, -step);
+  } else if (event.key === "ArrowDown") {
+    event.preventDefault();
+    panBy(0, step);
   }
 });
 
@@ -483,4 +566,10 @@ canvas.addEventListener("wheel", (event) => {
 }, { passive: false });
 
 addEventListener("resize", fitCanvas);
+
+const initialHashState = readHashState();
+if (initialHashState !== null) {
+  applyHashState(initialHashState);
+}
+
 fitCanvas();
