@@ -107,12 +107,24 @@ function fitCanvas() {
   }
 }
 
+// Auto-scale maxIter with zoom depth. Base quality from the slider acts as
+// a multiplier on a depth-based budget so that deep zooms get the iteration
+// headroom they need to resolve boundary detail without saturating.
+function effectiveMaxIter() {
+  const base = Number(qualityInput.value);
+  if (scale >= 3.15) return base;
+  const depth = Math.log10(3.15 / scale);
+  const factor = 1 + 0.5 * depth;
+  return Math.round(base * factor);
+}
+
 function render() {
   const token = ++renderToken;
   renderStarted = performance.now();
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
-  meter.textContent = `rendering | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+  const maxIter = effectiveMaxIter();
+  meter.textContent = `rendering | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
     type: "render",
@@ -122,14 +134,14 @@ function render() {
     centerX,
     centerY,
     scale,
-    maxIter: Number(qualityInput.value),
+    maxIter,
     samples,
     aaMode,
     colormap: colormapSelect.value
   };
 
   if (!hasFullFrame) {
-    meter.textContent = `rendering preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+    meter.textContent = `rendering preview | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
     worker.postMessage({ ...params, phase: "preview", previewScale: 4 });
   }
   worker.postMessage({ ...params, phase: "full", previewScale: 1 });
