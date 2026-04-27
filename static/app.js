@@ -481,8 +481,16 @@ zoomResetButton.addEventListener("click", () => {
   render();
 });
 
+function panBy(fractionX, fractionY) {
+  const aspect = canvas.width / canvas.height;
+  centerX += fractionX * scale * aspect;
+  centerY += fractionY * scale;
+  render();
+}
+
 addEventListener("keydown", (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+  const step = event.shiftKey ? 0.4 : 0.15;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
     zoomBy(0.5);
@@ -493,6 +501,18 @@ addEventListener("keydown", (event) => {
     event.preventDefault();
     scale = 3.15;
     render();
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    panBy(-step, 0);
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    panBy(step, 0);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    panBy(0, -step);
+  } else if (event.key === "ArrowDown") {
+    event.preventDefault();
+    panBy(0, step);
   }
 });
 
