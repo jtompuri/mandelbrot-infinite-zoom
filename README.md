@@ -3,8 +3,8 @@
 ![Mandelbrot overview in Aurora colormap](images/colormap-examples/mandelbrot-overview-aurora-q340.jpg)
 
 Browser-based Mandelbrot explorer with progressive rendering, adaptive
-anti-aliasing, and drag-to-zoom selection. Renders off the main thread in a
-Web Worker; the Python script is just a static file server.
+anti-aliasing, and drag-to-zoom selection. Rendering runs in a Web Worker;
+the Python script is a static file server.
 
 ## About the Mandelbrot set
 
@@ -16,17 +16,16 @@ stays bounded as $n \to \infty$. In practice we cap the iteration at some
 maximum and treat any orbit that escapes the disk $|z| > 2$ as outside the
 set; the iteration count at the moment of escape gives the colored bands.
 
-The set was named after Benoît Mandelbrot, who studied it in the late 1970s,
-though earlier work by Brooks and Matelski preceded him. It is a **fractal**:
-its boundary has no smooth pieces, infinite detail at every scale, and
-self-similar miniature copies of the whole set appear arbitrarily deep in
-the structure. The boundary has Hausdorff dimension 2, even though it has
-zero area, which is what makes "infinite zoom" so visually interesting.
+The set is named after Benoît Mandelbrot, who studied it in the late 1970s.
+Earlier images of the same set were produced by Brooks and Matelski. The
+set is a fractal: its boundary has no smooth pieces, contains arbitrarily
+fine detail at any scale, and contains self-similar miniature copies of
+the whole set at all depths. The boundary has Hausdorff dimension 2 but
+zero area, so zooming into the boundary keeps revealing structure.
 
-Most of the visible images here render only the boundary region: pixels
-that escape quickly become the colored "outside", pixels that never escape
-are drawn black, and the most intricate detail lies along the thin
-fractal edge between them.
+In rendered images, pixels that escape quickly are colored by their escape
+iteration, pixels that never escape are drawn as the interior color, and
+the boundary detail sits between the two.
 
 ## Features
 
@@ -51,7 +50,7 @@ browser; no third-party runtime dependencies.
 
 ## Development setup
 
-A virtual environment is recommended for running tests with `pytest`:
+For running tests with `pytest`, set up a virtual environment:
 
 ```bash
 python -m venv .venv
@@ -75,9 +74,9 @@ pytest
 
 From the browser DevTools console while the app is open:
 
-- `runProductionBenchmark()` — measures the user-facing render path.
-- `runMandelbrotBenchmark()` — detailed adaptive-AA benchmark with stats.
-- `runMandelbrotBenchmarkWithFull()` — adds full-supersampling reference cases.
+- `runProductionBenchmark()`: measures the user-facing render path.
+- `runMandelbrotBenchmark()`: adaptive-AA benchmark with per-pixel stats.
+- `runMandelbrotBenchmarkWithFull()`: also runs full-supersampling cases for reference.
 
 ## Targets
 

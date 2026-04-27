@@ -490,7 +490,7 @@ function panBy(fractionX, fractionY) {
 
 addEventListener("keydown", (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
-  const step = event.shiftKey ? 0.4 : 0.15;
+  const step = event.shiftKey ? 0.2 : 0.075;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
     zoomBy(0.5);
