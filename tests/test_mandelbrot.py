@@ -106,7 +106,7 @@ class MandelbrotAppTests(unittest.TestCase):
             "Elephant valley",
             "Triple spiral valley",
             "Mini Mandelbrot",
-            "Misiurewicz needle",
+            "Misiurewicz dendrite",
         ):
             self.assertIn(target, html)
 

@@ -21,12 +21,28 @@ python mandelbrot.py
 
 Opens `http://127.0.0.1:8000/` in your browser. Use `--port`, `--host`, or
 `--no-browser` to override defaults. Requires Python 3.10+ and a modern
-browser; no third-party dependencies.
+browser; no third-party runtime dependencies.
+
+## Development setup
+
+A virtual environment is recommended for running tests with `pytest`:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+```
 
 ## Tests
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
+```
+
+Or with `pytest` (after the development setup above):
+
+```bash
+pytest
 ```
 
 ## Benchmarking

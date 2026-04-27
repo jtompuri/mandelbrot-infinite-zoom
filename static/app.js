@@ -424,9 +424,21 @@ collapseButton.addEventListener("click", () => {
   collapseButton.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
 });
 resetButton.addEventListener("click", () => setTarget(targetSelect.value));
+
+function buildSaveFilename() {
+  const targetLabel = targetSelect.options[targetSelect.selectedIndex]?.text || "";
+  const slug = targetLabel
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const parts = ["mandelbrot"];
+  if (slug) parts.push(slug);
+  return `${parts.join("-")}.png`;
+}
+
 saveButton.addEventListener("click", () => {
   const link = document.createElement("a");
-  link.download = "mandelbrot.png";
+  link.download = buildSaveFilename();
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
