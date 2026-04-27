@@ -107,6 +107,7 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
 
   if (isProbablyInside(cx, cy)) {
     if (stats !== null) stats.interiorSkipped += 1;
+    if (centroid !== undefined && centroid !== null) centroid.bounded += 1;
     return INSIDE_RGB;
   }
 
@@ -126,20 +127,19 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
         stats.totalIterations += i + 1;
         stats.escaped += 1;
       }
-      // Only pixels close to the boundary should pull the camera. Low-iter
-      // escape regions (vast featureless areas) are excluded entirely, and
-      // remaining contributions are weighted quadratically so a thin
-      // high-iter tendril can outweigh a large low-iter slab.
-      if (centroid !== undefined && centroid !== null && i > maxIter * 0.25) {
-        const w = (i + 1) * (i + 1);
-        centroid.xSum += cx * w;
-        centroid.ySum += cy * w;
-        centroid.wSum += w;
-        centroid.count += 1;
-        // Pixels escaping very late behave indistinguishably from interior
-        // ones at this maxIter; if the view is dominated by them the
-        // image looks saturated (e.g. all yellow).
-        if (i > maxIter * 0.92) centroid.saturated += 1;
+      // Boundary band weighting: pixels in the middle of the iteration
+      // range contribute most. Both fast-escape (low i) and near-saturated
+      // (high i) pixels contribute little. This pulls the camera toward
+      // genuine fractal boundaries instead of toward minibrot interiors.
+      if (centroid !== undefined && centroid !== null) {
+        const t = (i + 1) / maxIter;
+        const w = t * (1 - t);
+        if (w > 0) {
+          centroid.xSum += cx * w;
+          centroid.ySum += cy * w;
+          centroid.wSum += w;
+          centroid.count += 1;
+        }
       }
       const smooth = i + 1 - Math.log2(0.5 * Math.log2(zx2 + zy2));
       return packedColor(smooth, maxIter, lut);
@@ -150,6 +150,10 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
     stats.totalIterations += maxIter;
     stats.bounded += 1;
   }
+  // Bounded pixels (never escaped) are the strongest saturation signal:
+  // they look identical regardless of position, so a view dominated by
+  // them is featureless.
+  if (centroid !== undefined && centroid !== null) centroid.bounded += 1;
   return INSIDE_RGB;
 }
 
@@ -244,7 +248,7 @@ function createRenderJob(params) {
   // animation to pan toward boundary detail and avoid drifting into
   // featureless regions.
   const centroid = (!benchmark && params.previewScale <= 1)
-    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, saturated: 0 }
+    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, bounded: 0 }
     : null;
 
   const aaMode = params.aaMode || "adaptive";
@@ -300,17 +304,14 @@ function finishRender(job) {
     benchmark: Boolean(job.benchmark),
     label: job.label,
     stats: job.stats,
-    centroid: job.centroid && job.centroid.wSum > 0
+    centroid: job.centroid
       ? {
-          x: job.centroid.xSum / job.centroid.wSum,
-          y: job.centroid.ySum / job.centroid.wSum,
-          // Fraction of pixels close to the boundary. Used by the main
-          // thread to detect featureless views.
+          x: job.centroid.wSum > 0 ? job.centroid.xSum / job.centroid.wSum : null,
+          y: job.centroid.wSum > 0 ? job.centroid.ySum / job.centroid.wSum : null,
+          // Fraction of pixels in the productive boundary band.
           coverage: job.centroid.count / Math.max(1, job.centroid.pixels),
-          // Fraction of pixels saturated near maxIter. High values mean
-          // the image is washed out (interior dive or insufficient
-          // maxIter at this depth) and the centroid is unreliable.
-          saturation: job.centroid.saturated / Math.max(1, job.centroid.pixels)
+          // Fraction of pixels that never escaped (interior dive).
+          bounded: job.centroid.bounded / Math.max(1, job.centroid.pixels)
         }
       : null,
     buffer: job.data.buffer

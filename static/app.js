@@ -147,34 +147,32 @@ function zoomStep() {
   const centroid = pendingCentroid;
   pendingCentroid = null;
 
-  // Coverage = fraction of pixels close to the boundary.
-  // Saturation = fraction of pixels at or near maxIter. High saturation
-  // means the image is washed out (interior dive) and the camera should
-  // back off.
-  const COVERAGE_LOW = 0.005;
-  const SATURATION_HIGH = 0.35;
-  const RECOVERY_TRIGGER = 2;
-  const RECOVERY_TELEPORT = 18;
-  const frameHasDetail = centroid !== null
-    && centroid.coverage >= COVERAGE_LOW
-    && centroid.saturation < SATURATION_HIGH;
+  // Boundary-band centroid weighting (in the worker) makes the centroid
+  // location reliable. Here we just decide whether the current frame has
+  // enough boundary detail to keep diving in.
+  const COVERAGE_GOOD = 0.05;
+  const COVERAGE_LOW = 0.01;
+  const BOUNDED_HIGH = 0.6;
 
-  if (frameHasDetail) {
-    if (recoveryFrames > 0) recoveryFrames = 0;
-    isRecovering = false;
-    // Cache a known-good view we can fall back to when recovery fails.
+  const coverage = centroid ? centroid.coverage : 0;
+  const bounded = centroid ? centroid.bounded : 0;
+  const haveCentroidPos = centroid !== null && centroid.x !== null;
+
+  const frameIsGood = haveCentroidPos
+    && coverage >= COVERAGE_LOW
+    && bounded < BOUNDED_HIGH;
+  const frameIsRich = frameIsGood && coverage >= COVERAGE_GOOD;
+
+  if (frameIsRich) {
+    // Cache this view as a known-good fallback.
     lastGoodView = { centerX, centerY, scale };
-  } else {
-    recoveryFrames += 1;
   }
 
-  const recovering = recoveryFrames >= RECOVERY_TRIGGER;
-  isRecovering = recovering;
+  if (frameIsGood) {
+    // Normal: pan toward centroid, then zoom in.
+    isRecovering = false;
+    recoveryFrames = 0;
 
-  // Pan toward the centroid in both modes. During recovery the centroid
-  // points away from the saturated core toward whatever non-saturated
-  // detail still exists in the view, which is the direction out.
-  if (centroid !== null) {
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;
     const viewHeight = scale;
@@ -182,30 +180,33 @@ function zoomStep() {
     const dy = centroid.y - centerY;
     const maxStepX = viewWidth * 0.22;
     const maxStepY = viewHeight * 0.22;
-    const stepFraction = recovering ? 0.35 : 0.2;
+    const stepFraction = 0.18;
     centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
     centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
-  }
 
-  if (!recovering) {
     scale *= 0.985 - speed * 0.205;
     if (scale < 1e-15) scale = 3.15;
-  } else if (recoveryFrames >= RECOVERY_TELEPORT && lastGoodView !== null) {
-    // Recovery has been stuck too long. Teleport back to the last view
-    // that had real boundary detail and start fresh from there.
-    centerX = lastGoodView.centerX;
-    centerY = lastGoodView.centerY;
-    scale = lastGoodView.scale * 2;
-    recoveryFrames = 0;
-    isRecovering = false;
   } else {
-    // Pull back faster than we zoomed in to escape a saturated interior
-    // within a few frames.
-    scale *= 1.25;
-    if (scale > 3.15) {
-      scale = 3.15;
-      recoveryFrames = 0;
-      isRecovering = false;
+    // Frame has no usable boundary signal (saturated interior, far
+    // escape, or a near-empty image). Teleport back to the last good
+    // view immediately and nudge the center sideways to try a different
+    // path on the next dive. Incremental zoom-out doesn't work because
+    // by the time we notice, we are deep inside a featureless region.
+    isRecovering = true;
+    recoveryFrames += 1;
+
+    if (lastGoodView !== null) {
+      const angle = Math.random() * Math.PI * 2;
+      const jitter = lastGoodView.scale * 0.15;
+      centerX = lastGoodView.centerX + Math.cos(angle) * jitter;
+      centerY = lastGoodView.centerY + Math.sin(angle) * jitter;
+      // Restart slightly outside the cached view so the dive has room
+      // to find detail before re-entering the same trap.
+      scale = lastGoodView.scale * 1.6;
+    } else {
+      // No good view yet: just back out gently.
+      scale *= 1.4;
+      if (scale > 3.15) scale = 3.15;
     }
   }
 
