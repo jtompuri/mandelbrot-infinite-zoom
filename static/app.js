@@ -139,7 +139,7 @@ function showRenderedFrame(message) {
   frameTimes.push(elapsed);
   if (frameTimes.length > 16) frameTimes.shift();
   const average = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-  fps.textContent = `${Math.round(1000 / average)} fps`;
+  fps.textContent = `${(1000 / average).toFixed(1)} fps`;
   updateFinalStatus(message.maxIter, message.samples);
 
   if (animating) requestAnimationFrame(zoomStep);

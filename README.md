@@ -10,11 +10,10 @@ Web Worker; the Python script is just a static file server.
 - Adaptive anti-aliasing presets: Off, 2x, 3x, 4x.
 - Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
 - Keyboard shortcuts: `+` / `−` to zoom, `0` to reset zoom.
-- Animated infinite zoom that auto-pans toward boundary detail and
-  pauses when the view loses detail.
+- Animated infinite zoom that auto-pans toward boundary detail.
 - Multiple colormaps and curated zoom targets.
-- Save the current frame as PNG (filename includes the selected target
-  and colormap).
+- Save the current frame as PNG (filename includes the selected target,
+  colormap, and quality).
 
 ## Run
 
