@@ -143,24 +143,31 @@ function zoomStep() {
   // so the animation drifts toward the fractal boundary instead of into a
   // flat interior or escape region. Step is a small fraction of the
   // current view so the camera motion feels organic.
+  let panned = false;
   if (pendingCentroid) {
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;
     const viewHeight = scale;
     const dx = pendingCentroid.x - centerX;
     const dy = pendingCentroid.y - centerY;
-    const maxStepX = viewWidth * 0.18;
-    const maxStepY = viewHeight * 0.18;
-    const stepFraction = 0.12;
+    const maxStepX = viewWidth * 0.22;
+    const maxStepY = viewHeight * 0.22;
+    const stepFraction = 0.2;
     const stepX = Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
     const stepY = Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
     centerX += stepX;
     centerY += stepY;
     pendingCentroid = null;
+    panned = true;
   }
 
-  scale *= 0.985 - speed * 0.205;
-  if (scale < 1e-15) scale = 3.15;
+  // Hold the zoom scale for one frame when we lose the boundary signal so
+  // the next render has a chance to re-acquire detail before we keep
+  // diving into a featureless region.
+  if (panned) {
+    scale *= 0.985 - speed * 0.205;
+    if (scale < 1e-15) scale = 3.15;
+  }
   render();
 }
 

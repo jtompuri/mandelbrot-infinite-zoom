@@ -126,8 +126,12 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
         stats.totalIterations += i + 1;
         stats.escaped += 1;
       }
-      if (centroid !== undefined && centroid !== null) {
-        const w = i + 1;
+      // Only pixels close to the boundary should pull the camera. Low-iter
+      // escape regions (vast featureless areas) are excluded entirely, and
+      // remaining contributions are weighted quadratically so a thin
+      // high-iter tendril can outweigh a large low-iter slab.
+      if (centroid !== undefined && centroid !== null && i > maxIter * 0.25) {
+        const w = (i + 1) * (i + 1);
         centroid.xSum += cx * w;
         centroid.ySum += cy * w;
         centroid.wSum += w;
