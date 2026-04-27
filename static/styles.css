@@ -1,0 +1,233 @@
+:root {
+  color-scheme: dark;
+  --bg: #05070d;
+  --panel: rgba(13, 18, 30, 0.86);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #f4f6fb;
+  --muted: #aab3c5;
+  --accent: #2dd4bf;
+  --hot: #f59e0b;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #02040a;
+  cursor: crosshair;
+}
+
+.toolbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  gap: 9px;
+  width: min(294px, calc(100vw - 32px));
+  padding: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.38);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.readout {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+button,
+select {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+option {
+  background: #101827;
+  color: var(--text);
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+button:hover,
+select:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+button.primary {
+  background: color-mix(in srgb, var(--accent) 32%, rgba(255, 255, 255, 0.08));
+}
+
+button.hot {
+  background: color-mix(in srgb, var(--hot) 30%, rgba(255, 255, 255, 0.08));
+}
+
+.icon-button {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.quick-actions,
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.toolbar.collapsed {
+  width: min(230px, calc(100vw - 32px));
+}
+
+.toolbar.collapsed .controls,
+.toolbar.collapsed .quick-actions {
+  display: none;
+}
+
+.toolbar.collapsed .readout {
+  display: none;
+}
+
+.toolbar.collapsed .icon-button {
+  margin-left: auto;
+}
+
+label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.wide { grid-column: 1 / -1; }
+
+.meter {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: rgba(8, 12, 20, 0.74);
+  color: var(--muted);
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.selection {
+  position: fixed;
+  display: none;
+  border: 1px solid rgba(45, 212, 191, 0.95);
+  background: rgba(45, 212, 191, 0.12);
+  box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.72), 0 0 30px rgba(45, 212, 191, 0.24);
+  pointer-events: none;
+}
+
+@media (max-width: 620px) {
+  .toolbar {
+    top: 10px;
+    left: 10px;
+    width: calc(100vw - 20px);
+    max-height: min(46vh, 310px);
+    overflow: auto;
+  }
+
+  .brand {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-bottom: 2px;
+    background: rgba(13, 18, 30, 0.92);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .wide {
+    grid-column: span 3;
+  }
+
+  button,
+  select {
+    min-width: 0;
+    min-height: 32px;
+    font-size: 12px;
+  }
+
+  label {
+    grid-column: span 1;
+    gap: 3px;
+  }
+
+  .meter { left: 10px; right: 10px; bottom: 10px; }
+
+  .toolbar.collapsed {
+    width: min(176px, calc(100vw - 20px));
+    max-height: none;
+    overflow: visible;
+  }
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mandelbrot Infinite Zoom</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <canvas id="fractal"></canvas>
+
+  <section class="toolbar" aria-label="Mandelbrot controls">
+    <div class="brand">
+      <h1>Mandelbrot</h1>
+      <span class="readout" id="fps">0 fps</span>
+      <button class="icon-button" id="collapse" title="Hide controls" aria-label="Hide controls">-</button>
+    </div>
+    <div class="quick-actions">
+      <button class="primary" id="toggle">Play</button>
+      <button id="reset">Reset</button>
+      <button class="hot" id="save">Save PNG</button>
+    </div>
+    <div class="controls">
+      <label class="wide">Target
+        <select id="target">
+          <option value="-0.743643887037151,0.13182590420533,3.15">Seahorse valley</option>
+          <option value="-0.759856,0.125547,0.051579">Seahorse webs</option>
+          <option value="-0.87591,0.20464,0.53184">Head and shoulder</option>
+          <option value="0.29833,0.00111,0.1">Elephant valley</option>
+          <option value="-0.088,0.654,0.42">Triple spiral valley</option>
+          <option value="0.274,0.482,0.34">Quad spiral valley</option>
+          <option value="-1.36,0.005,0.22">Scepter valley</option>
+          <option value="0.1,0.838,0.22">Double scepter valley</option>
+          <option value="-1.25066,0.02012,2.7">Lightning</option>
+          <option value="-0.761574,-0.0847596,2.9">Spiral</option>
+          <option value="-0.10109636384562,0.95628651080914,2.4">Needle</option>
+          <option value="-0.16070135,1.0375665,2.8">Crown</option>
+          <option value="-1.25450731,-0.38338111,0.000003">Scepter medallion</option>
+          <option value="-1.25469032,-0.37930648,0.0000045">Triple spiral medallion</option>
+        </select>
+      </label>
+      <label>Colormap
+        <select id="colormap">
+          <option value="aurora">Aurora</option>
+          <option value="magma">Magma</option>
+          <option value="inferno">Inferno</option>
+          <option value="plasma">Plasma</option>
+          <option value="viridis">Viridis</option>
+          <option value="cividis">Cividis</option>
+          <option value="turbo">Turbo</option>
+          <option value="rocket">Rocket</option>
+          <option value="mako">Mako</option>
+        </select>
+      </label>
+      <label>Anti-alias
+        <select id="antialias">
+          <option value="1">Off</option>
+          <option value="2">2x</option>
+          <option value="3">3x</option>
+          <option value="4">4x</option>
+        </select>
+      </label>
+      <label>Quality
+        <input id="quality" type="range" min="80" max="900" value="340">
+      </label>
+      <label>Speed
+        <input id="speed" type="range" min="1" max="100" value="42">
+      </label>
+    </div>
+  </section>
+
+  <div class="meter" id="meter"></div>
+  <div class="selection" id="selection"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
