@@ -7,11 +7,20 @@ const toggle = document.getElementById("toggle");
 const collapseButton = document.getElementById("collapse");
 const resetButton = document.getElementById("reset");
 const saveButton = document.getElementById("save");
+const zoomInButton = document.getElementById("zoom-in");
+const zoomOutButton = document.getElementById("zoom-out");
+const zoomResetButton = document.getElementById("zoom-reset");
 const targetSelect = document.getElementById("target");
 const colormapSelect = document.getElementById("colormap");
 const antialiasSelect = document.getElementById("antialias");
 const qualityInput = document.getElementById("quality");
 const speedInput = document.getElementById("speed");
+const qualityValue = document.getElementById("quality-value");
+const speedValue = document.getElementById("speed-value");
+const qualityReset = document.getElementById("quality-reset");
+const speedReset = document.getElementById("speed-reset");
+const QUALITY_DEFAULT = qualityInput.value;
+const SPEED_DEFAULT = speedInput.value;
 const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
@@ -28,6 +37,7 @@ let renderStarted = 0;
 let hasFullFrame = false;
 let dragStart = null;
 let dragCurrent = null;
+let pendingCentroid = null;
 const benchmarkResolvers = new Map();
 const productionResolvers = new Map();
 
@@ -125,6 +135,7 @@ function showRenderedFrame(message) {
   if (message.phase !== "full") return;
 
   hasFullFrame = true;
+  pendingCentroid = message.centroid || null;
   frameTimes.push(elapsed);
   if (frameTimes.length > 16) frameTimes.shift();
   const average = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
@@ -136,8 +147,29 @@ function showRenderedFrame(message) {
 
 function zoomStep() {
   const speed = Number(speedInput.value) / 100;
+  const centroid = pendingCentroid;
+  pendingCentroid = null;
+
+  // Pan toward the boundary-band centroid when one is available, then
+  // zoom in. If a frame produces no usable centroid (e.g. featureless
+  // dive), we just keep the current center and zoom anyway; the user
+  // can pause or recenter manually.
+  if (centroid !== null && centroid.x !== null) {
+    const aspect = canvas.width / canvas.height;
+    const viewWidth = scale * aspect;
+    const viewHeight = scale;
+    const dx = centroid.x - centerX;
+    const dy = centroid.y - centerY;
+    const maxStepX = viewWidth * 0.22;
+    const maxStepY = viewHeight * 0.22;
+    const stepFraction = 0.18;
+    centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
+    centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
+  }
+
   scale *= 0.985 - speed * 0.205;
   if (scale < 1e-15) scale = 3.15;
+
   render();
 }
 
@@ -349,16 +381,77 @@ collapseButton.addEventListener("click", () => {
   collapseButton.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
 });
 resetButton.addEventListener("click", () => setTarget(targetSelect.value));
+
+function buildSaveFilename() {
+  const slugify = (text) => text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const targetSlug = slugify(targetSelect.options[targetSelect.selectedIndex]?.text || "");
+  const colormapSlug = slugify(colormapSelect.value || "");
+  const quality = qualityInput.value;
+  const parts = ["mandelbrot"];
+  if (targetSlug) parts.push(targetSlug);
+  if (colormapSlug) parts.push(colormapSlug);
+  if (quality) parts.push(`q${quality}`);
+  return `${parts.join("-")}.png`;
+}
+
 saveButton.addEventListener("click", () => {
   const link = document.createElement("a");
-  link.download = "mandelbrot.png";
+  link.download = buildSaveFilename();
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
+
+function zoomBy(factor) {
+  scale *= factor;
+  if (scale > 3.15) scale = 3.15;
+  if (scale < 1e-15) scale = 1e-15;
+  render();
+}
+
+zoomInButton.addEventListener("click", () => zoomBy(0.5));
+zoomOutButton.addEventListener("click", () => zoomBy(2));
+zoomResetButton.addEventListener("click", () => {
+  scale = 3.15;
+  render();
+});
+
+addEventListener("keydown", (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    zoomBy(0.5);
+  } else if (event.key === "-" || event.key === "_") {
+    event.preventDefault();
+    zoomBy(2);
+  } else if (event.key === "0") {
+    event.preventDefault();
+    scale = 3.15;
+    render();
+  }
+});
+
 targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
-qualityInput.addEventListener("input", render);
+qualityInput.addEventListener("input", () => {
+  qualityValue.textContent = qualityInput.value;
+  render();
+});
+speedInput.addEventListener("input", () => {
+  speedValue.textContent = speedInput.value;
+});
+qualityReset.addEventListener("click", () => {
+  qualityInput.value = QUALITY_DEFAULT;
+  qualityValue.textContent = QUALITY_DEFAULT;
+  render();
+});
+speedReset.addEventListener("click", () => {
+  speedInput.value = SPEED_DEFAULT;
+  speedValue.textContent = SPEED_DEFAULT;
+});
 
 canvas.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;

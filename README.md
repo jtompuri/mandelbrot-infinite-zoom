@@ -8,10 +8,13 @@ Web Worker; the Python script is just a static file server.
 
 - Progressive preview + full render pipeline.
 - Adaptive anti-aliasing presets: Off, 2x, 3x, 4x.
-- Drag-to-zoom, click-to-recenter, and mouse wheel zoom.
-- Animated infinite zoom with adjustable speed.
-- Multiple colormaps and curated targets.
-- Save the current frame as PNG.
+- Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
+- Keyboard shortcuts: `+` / `−` to zoom, `0` to reset zoom.
+- Animated infinite zoom that auto-pans toward boundary detail and
+  pauses when the view loses detail.
+- Multiple colormaps and curated zoom targets.
+- Save the current frame as PNG (filename includes the selected target
+  and colormap).
 
 ## Run
 
@@ -21,12 +24,28 @@ python mandelbrot.py
 
 Opens `http://127.0.0.1:8000/` in your browser. Use `--port`, `--host`, or
 `--no-browser` to override defaults. Requires Python 3.10+ and a modern
-browser; no third-party dependencies.
+browser; no third-party runtime dependencies.
+
+## Development setup
+
+A virtual environment is recommended for running tests with `pytest`:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+```
 
 ## Tests
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
+```
+
+Or with `pytest` (after the development setup above):
+
+```bash
+pytest
 ```
 
 ## Benchmarking

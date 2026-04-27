@@ -101,15 +101,12 @@ class MandelbrotAppTests(unittest.TestCase):
         html = read_static("index.html")
 
         for target in (
+            "Overview",
             "Seahorse valley",
-            "Seahorse webs",
             "Elephant valley",
             "Triple spiral valley",
-            "Quad spiral valley",
-            "Scepter valley",
-            "Double scepter valley",
-            "Scepter medallion",
-            "Triple spiral medallion",
+            "Mini Mandelbrot",
+            "Misiurewicz dendrite",
         ):
             self.assertIn(target, html)
 
