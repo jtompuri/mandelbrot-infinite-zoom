@@ -6,6 +6,28 @@ Browser-based Mandelbrot explorer with progressive rendering, adaptive
 anti-aliasing, and drag-to-zoom selection. Renders off the main thread in a
 Web Worker; the Python script is just a static file server.
 
+## About the Mandelbrot set
+
+The Mandelbrot set is the set of complex numbers $c$ for which the iteration
+
+$$z_{n+1} = z_n^2 + c, \quad z_0 = 0$$
+
+stays bounded as $n \to \infty$. In practice we cap the iteration at some
+maximum and treat any orbit that escapes the disk $|z| > 2$ as outside the
+set; the iteration count at the moment of escape gives the colored bands.
+
+The set was named after Benoît Mandelbrot, who studied it in the late 1970s,
+though earlier work by Brooks and Matelski preceded him. It is a **fractal**:
+its boundary has no smooth pieces, infinite detail at every scale, and
+self-similar miniature copies of the whole set appear arbitrarily deep in
+the structure. The boundary has Hausdorff dimension 2, even though it has
+zero area, which is what makes "infinite zoom" so visually interesting.
+
+Most of the visible images here render only the boundary region: pixels
+that escape quickly become the colored "outside", pixels that never escape
+are drawn black, and the most intricate detail lies along the thin
+fractal edge between them.
+
 ## Features
 
 - Progressive preview + full render pipeline.
