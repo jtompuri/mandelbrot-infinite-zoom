@@ -29,6 +29,7 @@ let hasFullFrame = false;
 let dragStart = null;
 let dragCurrent = null;
 let pendingCentroid = null;
+let recoveryFrames = 0;
 const benchmarkResolvers = new Map();
 const productionResolvers = new Map();
 
@@ -138,36 +139,42 @@ function showRenderedFrame(message) {
 
 function zoomStep() {
   const speed = Number(speedInput.value) / 100;
+  const centroid = pendingCentroid;
+  pendingCentroid = null;
 
-  // Auto-pan toward the weighted centroid of high-iteration escape pixels
-  // so the animation drifts toward the fractal boundary instead of into a
-  // flat interior or escape region. Step is a small fraction of the
-  // current view so the camera motion feels organic.
-  let panned = false;
-  if (pendingCentroid) {
+  // Coverage = fraction of pixels close to the boundary. Below this the
+  // view is effectively featureless (deep interior, far escape, or
+  // everything saturated at maxIter).
+  const COVERAGE_LOW = 0.04;
+  const hasDetail = centroid !== null && centroid.coverage >= COVERAGE_LOW;
+
+  if (hasDetail) {
+    recoveryFrames = 0;
+
+    // Pan toward the boundary centroid before zooming further in.
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;
     const viewHeight = scale;
-    const dx = pendingCentroid.x - centerX;
-    const dy = pendingCentroid.y - centerY;
+    const dx = centroid.x - centerX;
+    const dy = centroid.y - centerY;
     const maxStepX = viewWidth * 0.22;
     const maxStepY = viewHeight * 0.22;
     const stepFraction = 0.2;
-    const stepX = Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
-    const stepY = Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
-    centerX += stepX;
-    centerY += stepY;
-    pendingCentroid = null;
-    panned = true;
-  }
+    centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
+    centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
 
-  // Hold the zoom scale for one frame when we lose the boundary signal so
-  // the next render has a chance to re-acquire detail before we keep
-  // diving into a featureless region.
-  if (panned) {
     scale *= 0.985 - speed * 0.205;
     if (scale < 1e-15) scale = 3.15;
+  } else {
+    // Recovery: the boundary has left the view (e.g. dove into a minibrot
+    // interior or a uniform escape region). Back the camera out gently
+    // until detail re-enters, then resume zoom-in next frame.
+    recoveryFrames += 1;
+    scale *= 1.06;
+    if (scale > 3.15) scale = 3.15;
+    meter.title = `Auto-recovery: ${recoveryFrames} frames`;
   }
+
   render();
 }
 

@@ -135,6 +135,7 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
         centroid.xSum += cx * w;
         centroid.ySum += cy * w;
         centroid.wSum += w;
+        centroid.count += 1;
       }
       const smooth = i + 1 - Math.log2(0.5 * Math.log2(zx2 + zy2));
       return packedColor(smooth, maxIter, lut);
@@ -157,6 +158,7 @@ function colorDistance(left, right) {
 function sampleInto(job, offset, centerX, centerY) {
   const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats, centroid } = job;
   if (stats !== null) stats.pixels += 1;
+  if (centroid !== null) centroid.pixels += 1;
 
   if (samples === 1) {
     writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid));
@@ -238,7 +240,7 @@ function createRenderJob(params) {
   // animation to pan toward boundary detail and avoid drifting into
   // featureless regions.
   const centroid = (!benchmark && params.previewScale <= 1)
-    ? { xSum: 0, ySum: 0, wSum: 0 }
+    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0 }
     : null;
 
   const aaMode = params.aaMode || "adaptive";
@@ -295,7 +297,14 @@ function finishRender(job) {
     label: job.label,
     stats: job.stats,
     centroid: job.centroid && job.centroid.wSum > 0
-      ? { x: job.centroid.xSum / job.centroid.wSum, y: job.centroid.ySum / job.centroid.wSum }
+      ? {
+          x: job.centroid.xSum / job.centroid.wSum,
+          y: job.centroid.ySum / job.centroid.wSum,
+          // Fraction of pixels that contributed to the centroid (i.e. were
+          // close enough to the boundary). Used by the main thread to
+          // decide whether the view still contains enough detail.
+          coverage: job.centroid.count / Math.max(1, job.centroid.pixels)
+        }
       : null,
     buffer: job.data.buffer
   }, [job.data.buffer]);
