@@ -58,14 +58,6 @@ python -m unittest discover -s tests -p 'test_*.py'
 
 Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
-## Benchmarking
-
-From the browser DevTools console while the app is open:
-
-- `runProductionBenchmark()`: measures the user-facing render path.
-- `runMandelbrotBenchmark()`: adaptive-AA benchmark with per-pixel stats.
-- `runMandelbrotBenchmarkWithFull()`: also runs full-supersampling cases for reference.
-
 ## Targets
 
 | | | |
