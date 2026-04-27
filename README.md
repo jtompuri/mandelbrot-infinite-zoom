@@ -48,27 +48,15 @@ Opens `http://127.0.0.1:8000/` in your browser. Use `--port`, `--host`, or
 `--no-browser` to override defaults. Requires Python 3.10+ and a modern
 browser; no third-party runtime dependencies.
 
-## Development setup
-
-For running tests with `pytest`, set up a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements-dev.txt
-```
-
 ## Tests
+
+Tests run with the standard library:
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Or with `pytest` (after the development setup above):
-
-```bash
-pytest
-```
+Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
 ## Benchmarking
 
