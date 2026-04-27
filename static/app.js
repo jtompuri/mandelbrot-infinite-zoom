@@ -142,15 +142,14 @@ function zoomStep() {
   const centroid = pendingCentroid;
   pendingCentroid = null;
 
-  // Coverage = fraction of pixels close to the boundary. Many normal views
-  // sit around 1-3 % even at the surface, so the threshold is set low and
-  // we require several consecutive starved frames before assuming the view
-  // is genuinely featureless.
-  // Saturation = fraction of pixels near maxIter. High values mean the
-  // image is washed out (interior dive) and pan/zoom should back off.
+  // Coverage = fraction of pixels close to the boundary.
+  // Saturation = fraction of pixels at or near maxIter. High saturation
+  // means the image is washed out (interior dive) and the camera should
+  // back off. We trigger recovery quickly because by the time multiple
+  // frames are saturated, we're already deep in a featureless region.
   const COVERAGE_LOW = 0.005;
-  const SATURATION_HIGH = 0.5;
-  const RECOVERY_TRIGGER = 4;
+  const SATURATION_HIGH = 0.35;
+  const RECOVERY_TRIGGER = 2;
   const frameHasDetail = centroid !== null
     && centroid.coverage >= COVERAGE_LOW
     && centroid.saturation < SATURATION_HIGH;
@@ -160,27 +159,30 @@ function zoomStep() {
 
   const recovering = recoveryFrames >= RECOVERY_TRIGGER;
 
-  if (!recovering) {
-    if (centroid !== null) {
-      // Pan toward the boundary centroid before zooming further in.
-      const aspect = canvas.width / canvas.height;
-      const viewWidth = scale * aspect;
-      const viewHeight = scale;
-      const dx = centroid.x - centerX;
-      const dy = centroid.y - centerY;
-      const maxStepX = viewWidth * 0.22;
-      const maxStepY = viewHeight * 0.22;
-      const stepFraction = 0.2;
-      centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
-      centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
-    }
+  // Pan toward the centroid in both modes. During recovery the centroid
+  // points away from the saturated core toward whatever boundary detail
+  // still exists in the view, which is exactly the direction we want to
+  // drift while pulling back.
+  if (centroid !== null) {
+    const aspect = canvas.width / canvas.height;
+    const viewWidth = scale * aspect;
+    const viewHeight = scale;
+    const dx = centroid.x - centerX;
+    const dy = centroid.y - centerY;
+    const maxStepX = viewWidth * 0.22;
+    const maxStepY = viewHeight * 0.22;
+    const stepFraction = recovering ? 0.35 : 0.2;
+    centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
+    centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
+  }
 
+  if (!recovering) {
     scale *= 0.985 - speed * 0.205;
     if (scale < 1e-15) scale = 3.15;
   } else {
-    // Recovery: the boundary has been absent for several frames. Back the
-    // camera out gently until detail re-enters, then resume zoom-in.
-    scale *= 1.06;
+    // Pull back faster than we zoomed in, so we can actually escape a
+    // saturated minibrot interior within a few frames.
+    scale *= 1.18;
     if (scale > 3.15) {
       scale = 3.15;
       recoveryFrames = 0;
