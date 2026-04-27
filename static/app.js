@@ -30,6 +30,8 @@ let dragStart = null;
 let dragCurrent = null;
 let pendingCentroid = null;
 let recoveryFrames = 0;
+let lastGoodView = null;
+let isRecovering = false;
 const benchmarkResolvers = new Map();
 const productionResolvers = new Map();
 
@@ -55,7 +57,8 @@ function render() {
   renderStarted = performance.now();
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
-  meter.textContent = `rendering | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+  const statusPrefix = isRecovering ? "recovering" : "rendering";
+  meter.textContent = `${statusPrefix} | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
     type: "render",
@@ -72,7 +75,7 @@ function render() {
   };
 
   if (!hasFullFrame) {
-    meter.textContent = `rendering preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+    meter.textContent = `${statusPrefix} preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
     worker.postMessage({ ...params, phase: "preview", previewScale: 4 });
   }
   worker.postMessage({ ...params, phase: "full", previewScale: 1 });
@@ -81,7 +84,8 @@ function render() {
 function updateFinalStatus(maxIter, samples) {
   const shortCenter = `${centerX.toPrecision(6)}, ${centerY.toPrecision(6)}`;
   const exactCenter = `${centerX.toPrecision(17)}, ${centerY.toPrecision(17)}`;
-  meter.textContent = `scale ${scale.toExponential(3)} | center ${shortCenter} | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
+  const prefix = isRecovering ? "recovering | " : "";
+  meter.textContent = `${prefix}scale ${scale.toExponential(3)} | center ${shortCenter} | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
   meter.title = `Exact center: ${exactCenter}\nScale: ${scale.toPrecision(17)}`;
 }
 
@@ -105,7 +109,8 @@ function showRenderedFrame(message) {
   if (message.token !== renderToken) return;
 
   if (message.type === "progress") {
-    meter.textContent = `rendering ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
+    const progressPrefix = isRecovering ? "recovering" : "rendering";
+    meter.textContent = `${progressPrefix} ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
     return;
   }
 
@@ -145,24 +150,30 @@ function zoomStep() {
   // Coverage = fraction of pixels close to the boundary.
   // Saturation = fraction of pixels at or near maxIter. High saturation
   // means the image is washed out (interior dive) and the camera should
-  // back off. We trigger recovery quickly because by the time multiple
-  // frames are saturated, we're already deep in a featureless region.
+  // back off.
   const COVERAGE_LOW = 0.005;
   const SATURATION_HIGH = 0.35;
   const RECOVERY_TRIGGER = 2;
+  const RECOVERY_TELEPORT = 18;
   const frameHasDetail = centroid !== null
     && centroid.coverage >= COVERAGE_LOW
     && centroid.saturation < SATURATION_HIGH;
 
-  if (frameHasDetail) recoveryFrames = 0;
-  else recoveryFrames += 1;
+  if (frameHasDetail) {
+    if (recoveryFrames > 0) recoveryFrames = 0;
+    isRecovering = false;
+    // Cache a known-good view we can fall back to when recovery fails.
+    lastGoodView = { centerX, centerY, scale };
+  } else {
+    recoveryFrames += 1;
+  }
 
   const recovering = recoveryFrames >= RECOVERY_TRIGGER;
+  isRecovering = recovering;
 
   // Pan toward the centroid in both modes. During recovery the centroid
-  // points away from the saturated core toward whatever boundary detail
-  // still exists in the view, which is exactly the direction we want to
-  // drift while pulling back.
+  // points away from the saturated core toward whatever non-saturated
+  // detail still exists in the view, which is the direction out.
   if (centroid !== null) {
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;
@@ -179,13 +190,22 @@ function zoomStep() {
   if (!recovering) {
     scale *= 0.985 - speed * 0.205;
     if (scale < 1e-15) scale = 3.15;
+  } else if (recoveryFrames >= RECOVERY_TELEPORT && lastGoodView !== null) {
+    // Recovery has been stuck too long. Teleport back to the last view
+    // that had real boundary detail and start fresh from there.
+    centerX = lastGoodView.centerX;
+    centerY = lastGoodView.centerY;
+    scale = lastGoodView.scale * 2;
+    recoveryFrames = 0;
+    isRecovering = false;
   } else {
-    // Pull back faster than we zoomed in, so we can actually escape a
-    // saturated minibrot interior within a few frames.
-    scale *= 1.18;
+    // Pull back faster than we zoomed in to escape a saturated interior
+    // within a few frames.
+    scale *= 1.25;
     if (scale > 3.15) {
       scale = 3.15;
       recoveryFrames = 0;
+      isRecovering = false;
     }
   }
 

@@ -165,7 +165,7 @@ class MandelbrotAppTests(unittest.TestCase):
     def test_render_status_shows_progress_while_rendering(self):
         app = read_static("app.js")
 
-        self.assertIn("rendering preview", app)
+        self.assertIn("${statusPrefix} preview", app)
         self.assertIn('message.type === "progress"', app)
         self.assertNotIn("renderButton", app)
 
