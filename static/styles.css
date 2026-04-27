@@ -118,6 +118,7 @@ button.hot {
 }
 
 .quick-actions,
+.zoom-actions,
 .controls {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -133,7 +134,8 @@ button.hot {
 }
 
 .toolbar.collapsed .controls,
-.toolbar.collapsed .quick-actions {
+.toolbar.collapsed .quick-actions,
+.toolbar.collapsed .zoom-actions {
   display: none;
 }
 
@@ -199,7 +201,8 @@ input[type="range"] {
     background: rgba(13, 18, 30, 0.92);
   }
 
-  .quick-actions {
+  .quick-actions,
+  .zoom-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

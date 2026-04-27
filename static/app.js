@@ -7,6 +7,9 @@ const toggle = document.getElementById("toggle");
 const collapseButton = document.getElementById("collapse");
 const resetButton = document.getElementById("reset");
 const saveButton = document.getElementById("save");
+const zoomInButton = document.getElementById("zoom-in");
+const zoomOutButton = document.getElementById("zoom-out");
+const zoomResetButton = document.getElementById("zoom-reset");
 const targetSelect = document.getElementById("target");
 const colormapSelect = document.getElementById("colormap");
 const antialiasSelect = document.getElementById("antialias");
@@ -427,6 +430,36 @@ saveButton.addEventListener("click", () => {
   link.href = canvas.toDataURL("image/png");
   link.click();
 });
+
+function zoomBy(factor) {
+  scale *= factor;
+  if (scale > 3.15) scale = 3.15;
+  if (scale < 1e-15) scale = 1e-15;
+  render();
+}
+
+zoomInButton.addEventListener("click", () => zoomBy(0.5));
+zoomOutButton.addEventListener("click", () => zoomBy(2));
+zoomResetButton.addEventListener("click", () => {
+  scale = 3.15;
+  render();
+});
+
+addEventListener("keydown", (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    zoomBy(0.5);
+  } else if (event.key === "-" || event.key === "_") {
+    event.preventDefault();
+    zoomBy(2);
+  } else if (event.key === "0") {
+    event.preventDefault();
+    scale = 3.15;
+    render();
+  }
+});
+
 targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
