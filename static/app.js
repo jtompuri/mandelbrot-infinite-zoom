@@ -142,37 +142,44 @@ function zoomStep() {
   const centroid = pendingCentroid;
   pendingCentroid = null;
 
-  // Coverage = fraction of pixels close to the boundary. Below this the
-  // view is effectively featureless (deep interior, far escape, or
-  // everything saturated at maxIter).
-  const COVERAGE_LOW = 0.04;
-  const hasDetail = centroid !== null && centroid.coverage >= COVERAGE_LOW;
+  // Coverage = fraction of pixels close to the boundary. Many normal views
+  // sit around 1-3 % even at the surface, so the threshold is set low and
+  // we require several consecutive starved frames before assuming the view
+  // is genuinely featureless.
+  const COVERAGE_LOW = 0.005;
+  const RECOVERY_TRIGGER = 4;
+  const frameHasDetail = centroid !== null && centroid.coverage >= COVERAGE_LOW;
 
-  if (hasDetail) {
-    recoveryFrames = 0;
+  if (frameHasDetail) recoveryFrames = 0;
+  else recoveryFrames += 1;
 
-    // Pan toward the boundary centroid before zooming further in.
-    const aspect = canvas.width / canvas.height;
-    const viewWidth = scale * aspect;
-    const viewHeight = scale;
-    const dx = centroid.x - centerX;
-    const dy = centroid.y - centerY;
-    const maxStepX = viewWidth * 0.22;
-    const maxStepY = viewHeight * 0.22;
-    const stepFraction = 0.2;
-    centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
-    centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
+  const recovering = recoveryFrames >= RECOVERY_TRIGGER;
+
+  if (!recovering) {
+    if (centroid !== null) {
+      // Pan toward the boundary centroid before zooming further in.
+      const aspect = canvas.width / canvas.height;
+      const viewWidth = scale * aspect;
+      const viewHeight = scale;
+      const dx = centroid.x - centerX;
+      const dy = centroid.y - centerY;
+      const maxStepX = viewWidth * 0.22;
+      const maxStepY = viewHeight * 0.22;
+      const stepFraction = 0.2;
+      centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
+      centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
+    }
 
     scale *= 0.985 - speed * 0.205;
     if (scale < 1e-15) scale = 3.15;
   } else {
-    // Recovery: the boundary has left the view (e.g. dove into a minibrot
-    // interior or a uniform escape region). Back the camera out gently
-    // until detail re-enters, then resume zoom-in next frame.
-    recoveryFrames += 1;
+    // Recovery: the boundary has been absent for several frames. Back the
+    // camera out gently until detail re-enters, then resume zoom-in.
     scale *= 1.06;
-    if (scale > 3.15) scale = 3.15;
-    meter.title = `Auto-recovery: ${recoveryFrames} frames`;
+    if (scale > 3.15) {
+      scale = 3.15;
+      recoveryFrames = 0;
+    }
   }
 
   render();
