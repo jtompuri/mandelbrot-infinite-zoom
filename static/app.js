@@ -109,12 +109,13 @@ function fitCanvas() {
 
 // Auto-scale maxIter with zoom depth. Base quality from the slider acts as
 // a multiplier on a depth-based budget so that deep zooms get the iteration
-// headroom they need to resolve boundary detail without saturating.
+// headroom they need to resolve boundary detail without saturating. The
+// growth rate is intentionally gentle so interactive zoom stays responsive.
 function effectiveMaxIter() {
   const base = Number(qualityInput.value);
   if (scale >= 3.15) return base;
   const depth = Math.log10(3.15 / scale);
-  const factor = 1 + 0.5 * depth;
+  const factor = 1 + 0.3 * depth;
   return Math.round(base * factor);
 }
 
