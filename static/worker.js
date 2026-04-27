@@ -102,7 +102,7 @@ function writePacked(data, offset, color) {
   data[offset + 3] = 255;
 }
 
-function mandelbrotColor(cx, cy, maxIter, lut, stats) {
+function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
   if (stats !== null) stats.mandelbrotCalls += 1;
 
   if (isProbablyInside(cx, cy)) {
@@ -126,6 +126,12 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats) {
         stats.totalIterations += i + 1;
         stats.escaped += 1;
       }
+      if (centroid !== undefined && centroid !== null) {
+        const w = i + 1;
+        centroid.xSum += cx * w;
+        centroid.ySum += cy * w;
+        centroid.wSum += w;
+      }
       const smooth = i + 1 - Math.log2(0.5 * Math.log2(zx2 + zy2));
       return packedColor(smooth, maxIter, lut);
     }
@@ -145,22 +151,22 @@ function colorDistance(left, right) {
 }
 
 function sampleInto(job, offset, centerX, centerY) {
-  const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats } = job;
+  const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats, centroid } = job;
   if (stats !== null) stats.pixels += 1;
 
   if (samples === 1) {
-    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats));
+    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid));
     return;
   }
 
   let centerColor = 0;
 
   if (useAdaptive) {
-    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, stats);
+    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid);
     writePacked(data, offset, centerColor);
 
-    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, stats);
-    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, stats);
+    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, stats, null);
+    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, stats, null);
     let contrast = colorDistance(centerColor, rightColor) + colorDistance(centerColor, downColor);
 
     if (contrast < FLAT_CONTRAST) {
@@ -169,8 +175,8 @@ function sampleInto(job, offset, centerX, centerY) {
     }
 
     if (contrast < EDGE_CONTRAST) {
-      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, stats);
-      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, stats);
+      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, stats, null);
+      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, stats, null);
       contrast += colorDistance(centerColor, leftColor) + colorDistance(centerColor, upColor);
       if (contrast < EDGE_CONTRAST) {
         if (stats !== null) stats.aaEdgeRejected += 1;
@@ -194,7 +200,7 @@ function sampleInto(job, offset, centerX, centerY) {
     const sampleY = subStartY + (sy + 0.5) * subStepY;
     for (let sx = 0; sx < samples; sx++) {
       const sampleX = subStartX + (sx + 0.5) * subStepX;
-      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, stats);
+      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, stats, null);
       red += (color >> 16) & 255;
       green += (color >> 8) & 255;
       blue += color & 255;
@@ -223,6 +229,13 @@ function createRenderJob(params) {
   const maxIter = params.previewScale > 1 ? Math.max(48, Math.floor(params.maxIter * 0.38)) : params.maxIter;
   const benchmark = Boolean(params.benchmark);
   const stats = benchmark ? createStats() : null;
+  // Track a weighted centroid of high-iteration escape samples on full
+  // (non-preview, non-benchmark) renders. The main thread uses it during
+  // animation to pan toward boundary detail and avoid drifting into
+  // featureless regions.
+  const centroid = (!benchmark && params.previewScale <= 1)
+    ? { xSum: 0, ySum: 0, wSum: 0 }
+    : null;
 
   const aaMode = params.aaMode || "adaptive";
   return {
@@ -243,6 +256,7 @@ function createRenderJob(params) {
     aaMode,
     useAdaptive: aaMode !== "full",
     stats,
+    centroid,
     started: performance.now(),
     y: 0
   };
@@ -276,6 +290,9 @@ function finishRender(job) {
     benchmark: Boolean(job.benchmark),
     label: job.label,
     stats: job.stats,
+    centroid: job.centroid && job.centroid.wSum > 0
+      ? { x: job.centroid.xSum / job.centroid.wSum, y: job.centroid.ySum / job.centroid.wSum }
+      : null,
     buffer: job.data.buffer
   }, [job.data.buffer]);
 }

@@ -28,6 +28,7 @@ let renderStarted = 0;
 let hasFullFrame = false;
 let dragStart = null;
 let dragCurrent = null;
+let pendingCentroid = null;
 const benchmarkResolvers = new Map();
 const productionResolvers = new Map();
 
@@ -125,6 +126,7 @@ function showRenderedFrame(message) {
   if (message.phase !== "full") return;
 
   hasFullFrame = true;
+  pendingCentroid = message.centroid || null;
   frameTimes.push(elapsed);
   if (frameTimes.length > 16) frameTimes.shift();
   const average = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
@@ -136,6 +138,27 @@ function showRenderedFrame(message) {
 
 function zoomStep() {
   const speed = Number(speedInput.value) / 100;
+
+  // Auto-pan toward the weighted centroid of high-iteration escape pixels
+  // so the animation drifts toward the fractal boundary instead of into a
+  // flat interior or escape region. Step is a small fraction of the
+  // current view so the camera motion feels organic.
+  if (pendingCentroid) {
+    const aspect = canvas.width / canvas.height;
+    const viewWidth = scale * aspect;
+    const viewHeight = scale;
+    const dx = pendingCentroid.x - centerX;
+    const dy = pendingCentroid.y - centerY;
+    const maxStepX = viewWidth * 0.18;
+    const maxStepY = viewHeight * 0.18;
+    const stepFraction = 0.12;
+    const stepX = Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
+    const stepY = Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
+    centerX += stepX;
+    centerY += stepY;
+    pendingCentroid = null;
+  }
+
   scale *= 0.985 - speed * 0.205;
   if (scale < 1e-15) scale = 3.15;
   render();
