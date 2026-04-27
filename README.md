@@ -8,10 +8,13 @@ Web Worker; the Python script is just a static file server.
 
 - Progressive preview + full render pipeline.
 - Adaptive anti-aliasing presets: Off, 2x, 3x, 4x.
-- Drag-to-zoom, click-to-recenter, and mouse wheel zoom.
-- Animated infinite zoom with adjustable speed.
-- Multiple colormaps and curated targets.
-- Save the current frame as PNG.
+- Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
+- Keyboard shortcuts: `+` / `−` to zoom, `0` to reset zoom.
+- Animated infinite zoom that auto-pans toward boundary detail and
+  pauses when the view loses detail.
+- Multiple colormaps and curated zoom targets.
+- Save the current frame as PNG (filename includes the selected target
+  and colormap).
 
 ## Run
 

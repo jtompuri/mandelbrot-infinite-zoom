@@ -12,7 +12,8 @@ const colorMaps = {
   cividis: [[0.00, [0, 32, 76]], [0.18, [38, 57, 106]], [0.36, [77, 82, 112]], [0.54, [117, 111, 105]], [0.72, [160, 146, 91]], [0.88, [208, 190, 72]], [1.00, [255, 233, 69]]],
   turbo: [[0.00, [48, 18, 59]], [0.14, [50, 101, 213]], [0.28, [27, 187, 238]], [0.42, [76, 226, 101]], [0.58, [210, 226, 27]], [0.74, [251, 140, 21]], [0.88, [210, 45, 39]], [1.00, [122, 4, 3]]],
   rocket: [[0.00, [3, 5, 26]], [0.18, [33, 18, 59]], [0.36, [86, 28, 80]], [0.54, [152, 47, 72]], [0.72, [215, 95, 62]], [0.88, [246, 169, 118]], [1.00, [250, 235, 221]]],
-  mako: [[0.00, [11, 4, 5]], [0.16, [31, 28, 55]], [0.34, [37, 64, 90]], [0.52, [35, 102, 120]], [0.70, [52, 148, 145]], [0.86, [135, 194, 161]], [1.00, [222, 245, 229]]]
+  mako: [[0.00, [11, 4, 5]], [0.16, [31, 28, 55]], [0.34, [37, 64, 90]], [0.52, [35, 102, 120]], [0.70, [52, 148, 145]], [0.86, [135, 194, 161]], [1.00, [222, 245, 229]]],
+  twilight: [[0.00, [225, 216, 226]], [0.12, [173, 187, 217]], [0.25, [114, 145, 201]], [0.38, [78, 96, 168]], [0.50, [35, 23, 85]], [0.62, [82, 26, 76]], [0.75, [161, 65, 80]], [0.88, [217, 138, 117]], [1.00, [225, 216, 226]]]
 };
 
 const paletteCache = new Map();
@@ -107,7 +108,7 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
 
   if (isProbablyInside(cx, cy)) {
     if (stats !== null) stats.interiorSkipped += 1;
-    if (centroid !== undefined && centroid !== null) centroid.bounded += 1;
+    if (centroid !== null) centroid.bounded += 1;
     return INSIDE_RGB;
   }
 
@@ -129,12 +130,14 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
       }
       // Boundary band weighting: pixels in the middle of the iteration
       // range contribute most. Both fast-escape (low i) and near-saturated
-      // (high i) pixels contribute little. This pulls the camera toward
-      // genuine fractal boundaries instead of toward minibrot interiors.
-      if (centroid !== undefined && centroid !== null) {
+      // (high i) pixels are treated as featureless. The hard band gates
+      // (5%-90% of maxIter) ensure that views where nearly every pixel
+      // saturates near maxIter contribute nothing rather than sneaking
+      // through with tiny but nonzero weights.
+      if (centroid !== null) {
         const t = (i + 1) / maxIter;
-        const w = t * (1 - t);
-        if (w > 0) {
+        if (t >= 0.05 && t <= 0.9) {
+          const w = t * (1 - t);
           centroid.xSum += cx * w;
           centroid.ySum += cy * w;
           centroid.wSum += w;
@@ -153,7 +156,7 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid) {
   // Bounded pixels (never escaped) are the strongest saturation signal:
   // they look identical regardless of position, so a view dominated by
   // them is featureless.
-  if (centroid !== undefined && centroid !== null) centroid.bounded += 1;
+  if (centroid !== null) centroid.bounded += 1;
   return INSIDE_RGB;
 }
 

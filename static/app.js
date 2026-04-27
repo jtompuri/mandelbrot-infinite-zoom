@@ -15,6 +15,12 @@ const colormapSelect = document.getElementById("colormap");
 const antialiasSelect = document.getElementById("antialias");
 const qualityInput = document.getElementById("quality");
 const speedInput = document.getElementById("speed");
+const qualityValue = document.getElementById("quality-value");
+const speedValue = document.getElementById("speed-value");
+const qualityReset = document.getElementById("quality-reset");
+const speedReset = document.getElementById("speed-reset");
+const QUALITY_DEFAULT = qualityInput.value;
+const SPEED_DEFAULT = speedInput.value;
 const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
@@ -32,9 +38,6 @@ let hasFullFrame = false;
 let dragStart = null;
 let dragCurrent = null;
 let pendingCentroid = null;
-let recoveryFrames = 0;
-let lastGoodView = null;
-let isRecovering = false;
 const benchmarkResolvers = new Map();
 const productionResolvers = new Map();
 
@@ -60,8 +63,7 @@ function render() {
   renderStarted = performance.now();
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
-  const statusPrefix = isRecovering ? "recovering" : "rendering";
-  meter.textContent = `${statusPrefix} | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+  meter.textContent = `rendering | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
     type: "render",
@@ -78,7 +80,7 @@ function render() {
   };
 
   if (!hasFullFrame) {
-    meter.textContent = `${statusPrefix} preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
+    meter.textContent = `rendering preview | ${qualityInput.value} iterations | ${formatAaLabel(samples)} AA`;
     worker.postMessage({ ...params, phase: "preview", previewScale: 4 });
   }
   worker.postMessage({ ...params, phase: "full", previewScale: 1 });
@@ -87,8 +89,7 @@ function render() {
 function updateFinalStatus(maxIter, samples) {
   const shortCenter = `${centerX.toPrecision(6)}, ${centerY.toPrecision(6)}`;
   const exactCenter = `${centerX.toPrecision(17)}, ${centerY.toPrecision(17)}`;
-  const prefix = isRecovering ? "recovering | " : "";
-  meter.textContent = `${prefix}scale ${scale.toExponential(3)} | center ${shortCenter} | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
+  meter.textContent = `scale ${scale.toExponential(3)} | center ${shortCenter} | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
   meter.title = `Exact center: ${exactCenter}\nScale: ${scale.toPrecision(17)}`;
 }
 
@@ -112,8 +113,7 @@ function showRenderedFrame(message) {
   if (message.token !== renderToken) return;
 
   if (message.type === "progress") {
-    const progressPrefix = isRecovering ? "recovering" : "rendering";
-    meter.textContent = `${progressPrefix} ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
+    meter.textContent = `rendering ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
     return;
   }
 
@@ -150,32 +150,11 @@ function zoomStep() {
   const centroid = pendingCentroid;
   pendingCentroid = null;
 
-  // Boundary-band centroid weighting (in the worker) makes the centroid
-  // location reliable. Here we just decide whether the current frame has
-  // enough boundary detail to keep diving in.
-  const COVERAGE_GOOD = 0.05;
-  const COVERAGE_LOW = 0.01;
-  const BOUNDED_HIGH = 0.6;
-
-  const coverage = centroid ? centroid.coverage : 0;
-  const bounded = centroid ? centroid.bounded : 0;
-  const haveCentroidPos = centroid !== null && centroid.x !== null;
-
-  const frameIsGood = haveCentroidPos
-    && coverage >= COVERAGE_LOW
-    && bounded < BOUNDED_HIGH;
-  const frameIsRich = frameIsGood && coverage >= COVERAGE_GOOD;
-
-  if (frameIsRich) {
-    // Cache this view as a known-good fallback.
-    lastGoodView = { centerX, centerY, scale };
-  }
-
-  if (frameIsGood) {
-    // Normal: pan toward centroid, then zoom in.
-    isRecovering = false;
-    recoveryFrames = 0;
-
+  // Pan toward the boundary-band centroid when one is available, then
+  // zoom in. If a frame produces no usable centroid (e.g. featureless
+  // dive), we just keep the current center and zoom anyway; the user
+  // can pause or recenter manually.
+  if (centroid !== null && centroid.x !== null) {
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;
     const viewHeight = scale;
@@ -186,32 +165,10 @@ function zoomStep() {
     const stepFraction = 0.18;
     centerX += Math.max(-maxStepX, Math.min(maxStepX, dx * stepFraction));
     centerY += Math.max(-maxStepY, Math.min(maxStepY, dy * stepFraction));
-
-    scale *= 0.985 - speed * 0.205;
-    if (scale < 1e-15) scale = 3.15;
-  } else {
-    // Frame has no usable boundary signal (saturated interior, far
-    // escape, or a near-empty image). Teleport back to the last good
-    // view immediately and nudge the center sideways to try a different
-    // path on the next dive. Incremental zoom-out doesn't work because
-    // by the time we notice, we are deep inside a featureless region.
-    isRecovering = true;
-    recoveryFrames += 1;
-
-    if (lastGoodView !== null) {
-      const angle = Math.random() * Math.PI * 2;
-      const jitter = lastGoodView.scale * 0.15;
-      centerX = lastGoodView.centerX + Math.cos(angle) * jitter;
-      centerY = lastGoodView.centerY + Math.sin(angle) * jitter;
-      // Restart slightly outside the cached view so the dive has room
-      // to find detail before re-entering the same trap.
-      scale = lastGoodView.scale * 1.6;
-    } else {
-      // No good view yet: just back out gently.
-      scale *= 1.4;
-      if (scale > 3.15) scale = 3.15;
-    }
   }
+
+  scale *= 0.985 - speed * 0.205;
+  if (scale < 1e-15) scale = 3.15;
 
   render();
 }
@@ -426,13 +383,17 @@ collapseButton.addEventListener("click", () => {
 resetButton.addEventListener("click", () => setTarget(targetSelect.value));
 
 function buildSaveFilename() {
-  const targetLabel = targetSelect.options[targetSelect.selectedIndex]?.text || "";
-  const slug = targetLabel
+  const slugify = (text) => text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+  const targetSlug = slugify(targetSelect.options[targetSelect.selectedIndex]?.text || "");
+  const colormapSlug = slugify(colormapSelect.value || "");
+  const quality = qualityInput.value;
   const parts = ["mandelbrot"];
-  if (slug) parts.push(slug);
+  if (targetSlug) parts.push(targetSlug);
+  if (colormapSlug) parts.push(colormapSlug);
+  if (quality) parts.push(`q${quality}`);
   return `${parts.join("-")}.png`;
 }
 
@@ -475,7 +436,22 @@ addEventListener("keydown", (event) => {
 targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
-qualityInput.addEventListener("input", render);
+qualityInput.addEventListener("input", () => {
+  qualityValue.textContent = qualityInput.value;
+  render();
+});
+speedInput.addEventListener("input", () => {
+  speedValue.textContent = speedInput.value;
+});
+qualityReset.addEventListener("click", () => {
+  qualityInput.value = QUALITY_DEFAULT;
+  qualityValue.textContent = QUALITY_DEFAULT;
+  render();
+});
+speedReset.addEventListener("click", () => {
+  speedInput.value = SPEED_DEFAULT;
+  speedValue.textContent = SPEED_DEFAULT;
+});
 
 canvas.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
