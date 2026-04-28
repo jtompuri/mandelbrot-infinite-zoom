@@ -47,9 +47,6 @@ let hasFullFrame = false;
 let dragStart = null;
 let dragCurrent = null;
 let pendingCentroid = null;
-const benchmarkResolvers = new Map();
-const productionResolvers = new Map();
-
 function formatAaLabel(samples) {
   return samples === 1 ? "Off" : `${samples}x`;
 }
@@ -181,23 +178,7 @@ function updateFinalStatus(maxIter, samples) {
 }
 
 function showRenderedFrame(message) {
-  if (message.benchmark) {
-    const resolver = benchmarkResolvers.get(message.token);
-    if (resolver) {
-      benchmarkResolvers.delete(message.token);
-      resolver(message);
-    }
-    return;
-  }
-
-  if (productionResolvers.has(message.token) && message.type === "rendered" && message.phase === "full") {
-    const resolver = productionResolvers.get(message.token);
-    productionResolvers.delete(message.token);
-    resolver(message);
-    return;
-  }
-
-  if (message.token !== renderToken) return;
+      if (message.token !== renderToken) return;
 
   if (message.type === "progress") {
     meter.textContent = `rendering ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
@@ -345,112 +326,7 @@ function clearSelection() {
 
 worker.addEventListener("message", (event) => showRenderedFrame(event.data));
 
-function benchmarkCase(samples, aaMode) {
-  const token = `benchmark-${Date.now()}-${samples}-${aaMode}-${Math.random()}`;
-  const params = {
-    type: "render",
-    token,
-    phase: "full",
-    previewScale: 1,
-    width: canvas.width,
-    height: canvas.height,
-    centerX,
-    centerY,
-    scale,
-    maxIter: Number(qualityInput.value),
-    samples,
-    aaMode,
-    colormap: colormapSelect.value,
-    benchmark: true,
-    label: `${formatAaLabel(samples)} ${aaMode}`
-  };
 
-  return new Promise((resolve) => {
-    benchmarkResolvers.set(token, resolve);
-    worker.postMessage(params);
-  });
-}
-
-async function runMandelbrotBenchmark(options = {}) {
-  const includeFull = Boolean(options.includeFull);
-  const cases = [
-    [1, "adaptive"],
-    [2, "adaptive"],
-    [3, "adaptive"],
-    [4, "adaptive"]
-  ];
-  if (includeFull) {
-    cases.push([2, "full"], [3, "full"], [4, "full"]);
-  } else {
-    console.info("Benchmarking adaptive AA presets only. Use runMandelbrotBenchmarkWithFull() to include full AA reference cases.");
-  }
-  const results = [];
-
-  for (const [samples, aaMode] of cases) {
-    const result = await benchmarkCase(samples, aaMode);
-    const stats = result.stats;
-    results.push({
-      case: result.label,
-      ms: Math.round(result.elapsed),
-      callsPerPixel: Number((stats.mandelbrotCalls / stats.pixels).toFixed(2)),
-      avgIterations: Number((stats.totalIterations / Math.max(1, stats.mandelbrotCalls)).toFixed(1)),
-      aaFlatSkipped: stats.aaFlatSkipped,
-      aaEdgeRejected: stats.aaEdgeRejected,
-      aaFullSampled: stats.aaFullSampled,
-      interiorSkipped: stats.interiorSkipped,
-      escaped: stats.escaped,
-      bounded: stats.bounded
-    });
-  }
-
-  console.table(results);
-  return results;
-}
-
-window.runMandelbrotBenchmark = runMandelbrotBenchmark;
-window.runMandelbrotBenchmarkWithFull = () => runMandelbrotBenchmark({ includeFull: true });
-
-function productionCase(samples) {
-  const token = `production-${Date.now()}-${samples}-${Math.random()}`;
-  const params = {
-    type: "render",
-    token,
-    phase: "full",
-    previewScale: 1,
-    width: canvas.width,
-    height: canvas.height,
-    centerX,
-    centerY,
-    scale,
-    maxIter: Number(qualityInput.value),
-    samples,
-    aaMode: "adaptive",
-    colormap: colormapSelect.value
-  };
-
-  return new Promise((resolve) => {
-    productionResolvers.set(token, resolve);
-    worker.postMessage(params);
-  });
-}
-
-async function runProductionBenchmark() {
-  const cases = [1, 2, 3, 4];
-  const results = [];
-
-  for (const samples of cases) {
-    const result = await productionCase(samples);
-    results.push({
-      case: `${formatAaLabel(samples)} adaptive`,
-      ms: Math.round(result.elapsed)
-    });
-  }
-
-  console.table(results);
-  return results;
-}
-
-window.runProductionBenchmark = runProductionBenchmark;
 
 toggle.addEventListener("click", () => {
   animating = !animating;

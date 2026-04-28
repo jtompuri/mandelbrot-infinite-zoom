@@ -25,19 +25,7 @@ const paletteCache = new Map();
 // resolver maps in app.js, so they are not affected by token churn.
 let activeToken = 0;
 
-function createStats() {
-  return {
-    pixels: 0,
-    mandelbrotCalls: 0,
-    totalIterations: 0,
-    interiorSkipped: 0,
-    escaped: 0,
-    bounded: 0,
-    aaFlatSkipped: 0,
-    aaEdgeRejected: 0,
-    aaFullSampled: 0
-  };
-}
+
 
 function mix(a, b, t) {
   return a + (b - a) * t;
@@ -117,11 +105,9 @@ function writePacked(data, offset, color) {
   data[offset + 3] = 255;
 }
 
-function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity, gradientOffset) {
-  if (stats !== null) stats.mandelbrotCalls += 1;
+function mandelbrotColor(cx, cy, maxIter, lut, centroid, colorDensity, gradientOffset) {
 
   if (isProbablyInside(cx, cy)) {
-    if (stats !== null) stats.interiorSkipped += 1;
     if (centroid !== null) centroid.bounded += 1;
     return INSIDE_RGB;
   }
@@ -138,10 +124,6 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity, gr
     zy2 = zy * zy;
 
     if (zx2 + zy2 > 4) {
-      if (stats !== null) {
-        stats.totalIterations += i + 1;
-        stats.escaped += 1;
-      }
       // Boundary band weighting: pixels in the middle of the iteration
       // range contribute most. Both fast-escape (low i) and near-saturated
       // (high i) pixels are treated as featureless. The hard band gates
@@ -162,11 +144,6 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity, gr
       return packedColor(smooth, lut, colorDensity, gradientOffset);
     }
   }
-
-  if (stats !== null) {
-    stats.totalIterations += maxIter;
-    stats.bounded += 1;
-  }
   // Bounded pixels (never escaped) are the strongest saturation signal:
   // they look identical regardless of position, so a view dominated by
   // them is featureless.
@@ -181,42 +158,42 @@ function colorDistance(left, right) {
 }
 
 function sampleInto(job, offset, centerX, centerY) {
-  const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats, centroid, colorDensity, gradientOffset } = job;
-  if (stats !== null) stats.pixels += 1;
+  const { data, dx, dy, maxIter, samples, lut, useAdaptive, centroid, colorDensity, gradientOffset } = job;
+  
   if (centroid !== null) centroid.pixels += 1;
 
   if (samples === 1) {
-    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity, gradientOffset));
+    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, centroid, colorDensity, gradientOffset));
     return;
   }
 
   let centerColor = 0;
 
   if (useAdaptive) {
-    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity, gradientOffset);
+    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, centroid, colorDensity, gradientOffset);
     writePacked(data, offset, centerColor);
 
-    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity, gradientOffset);
-    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, stats, null, colorDensity, gradientOffset);
+    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, null, colorDensity, gradientOffset);
+    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, null, colorDensity, gradientOffset);
     let contrast = colorDistance(centerColor, rightColor) + colorDistance(centerColor, downColor);
 
     if (contrast < FLAT_CONTRAST) {
-      if (stats !== null) stats.aaFlatSkipped += 1;
+      
       return;
     }
 
     if (contrast < EDGE_CONTRAST) {
-      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity, gradientOffset);
-      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, stats, null, colorDensity, gradientOffset);
+      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, null, colorDensity, gradientOffset);
+      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, null, colorDensity, gradientOffset);
       contrast += colorDistance(centerColor, leftColor) + colorDistance(centerColor, upColor);
       if (contrast < EDGE_CONTRAST) {
-        if (stats !== null) stats.aaEdgeRejected += 1;
+        
         return;
       }
     }
   }
 
-  if (stats !== null) stats.aaFullSampled += 1;
+  
   let red = 0;
   let green = 0;
   let blue = 0;
@@ -231,7 +208,7 @@ function sampleInto(job, offset, centerX, centerY) {
     const sampleY = subStartY + (sy + 0.5) * subStepY;
     for (let sx = 0; sx < samples; sx++) {
       const sampleX = subStartX + (sx + 0.5) * subStepX;
-      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, stats, null, colorDensity, gradientOffset);
+      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, null, colorDensity, gradientOffset);
       red += (color >> 16) & 255;
       green += (color >> 8) & 255;
       blue += color & 255;
@@ -261,7 +238,6 @@ function createRenderJob(params) {
   const benchmark = Boolean(params.benchmark);
   const colorDensity = params.colorDensity !== undefined ? params.colorDensity : 1.0;
   const gradientOffset = params.gradientOffset || 0;
-  const stats = benchmark ? createStats() : null;
   // Track a weighted centroid of high-iteration escape samples on full
   // (non-preview, non-benchmark) renders. The main thread uses it during
   // animation to pan toward boundary detail and avoid drifting into
@@ -290,7 +266,6 @@ function createRenderJob(params) {
     gradientOffset,
     aaMode,
     useAdaptive: aaMode !== "full",
-    stats,
     centroid,
     started: performance.now(),
     y: 0
@@ -324,7 +299,7 @@ function finishRender(job) {
     elapsed: performance.now() - job.started,
     benchmark: Boolean(job.benchmark),
     label: job.label,
-    stats: job.stats,
+    stats: job.
     centroid: job.centroid
       ? {
           x: job.centroid.wSum > 0 ? job.centroid.xSum / job.centroid.wSum : null,
