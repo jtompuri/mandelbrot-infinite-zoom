@@ -399,8 +399,8 @@ function zoomBy(factor) {
   render();
 }
 
-zoomInButton.addEventListener("click", () => zoomBy(0.5));
-zoomOutButton.addEventListener("click", () => zoomBy(2));
+zoomInButton.addEventListener("click", () => zoomBy(0.75));
+zoomOutButton.addEventListener("click", () => zoomBy(1.25));
 zoomResetButton.addEventListener("click", () => {
   scale = 3.15;
   render();
@@ -422,10 +422,10 @@ addEventListener("keydown", (event) => {
   const step = event.shiftKey ? 0.2 : 0.05;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
-    zoomBy(0.5);
+    zoomBy(0.75);
   } else if (event.key === "-" || event.key === "_") {
     event.preventDefault();
-    zoomBy(2);
+    zoomBy(1.25);
   } else if (event.key === "0") {
     event.preventDefault();
     scale = 3.15;
