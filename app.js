@@ -33,7 +33,7 @@ const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
 
-const worker = new Worker("/worker.js");
+const worker = new Worker("worker.js");
 
 let centerX = -0.743643887037151;
 let centerY = 0.13182590420533;

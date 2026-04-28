@@ -75,7 +75,7 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIsInstance(body, bytes)
         self.assertIn(b"<!doctype html>", body)
         self.assertIn(b'id="fractal"', body)
-        self.assertIn(b'<script src="/app.js" defer></script>', body)
+        self.assertIn(b'<script src="app.js" defer></script>', body)
 
     def test_ui_exposes_expected_controls(self):
         html = read_static("index.html")
@@ -190,7 +190,7 @@ class MandelbrotAppTests(unittest.TestCase):
         app = read_static("app.js")
         worker = read_static("worker.js")
 
-        self.assertIn('const worker = new Worker("/worker.js");', app)
+        self.assertIn('const worker = new Worker("worker.js");', app)
         self.assertIn('phase: "preview"', app)
         self.assertIn('phase: "full"', app)
         self.assertIn("previewScale: 4", app)
