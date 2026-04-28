@@ -299,7 +299,6 @@ function finishRender(job) {
     elapsed: performance.now() - job.started,
     benchmark: Boolean(job.benchmark),
     label: job.label,
-    stats: job.
     centroid: job.centroid
       ? {
           x: job.centroid.wSum > 0 ? job.centroid.xSum / job.centroid.wSum : null,

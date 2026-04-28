@@ -178,7 +178,7 @@ function updateFinalStatus(maxIter, samples) {
 }
 
 function showRenderedFrame(message) {
-      if (message.token !== renderToken) return;
+  if (message.token !== renderToken) return;
 
   if (message.type === "progress") {
     meter.textContent = `rendering ${Math.round(message.progress * 100)}% | ${message.maxIter} iterations | ${formatAaLabel(message.samples)} AA`;
@@ -243,6 +243,7 @@ function zoomStep() {
 }
 
 function setTarget(value) {
+  hasFullFrame = false;
   const [x, y, nextScale] = value.split(",").map(Number);
   centerX = x;
   centerY = y;
@@ -261,6 +262,7 @@ function canvasPoint(event) {
 }
 
 function recenterAt(point, shouldRender = true) {
+  hasFullFrame = false;
   centerX += (point.x / point.width - 0.5) * scale * (canvas.width / canvas.height);
   centerY += (point.y / point.height - 0.5) * scale;
   if (shouldRender) render();
@@ -292,6 +294,7 @@ function updateSelection() {
 }
 
 function zoomToSelection() {
+  hasFullFrame = false;
   if (!dragStart || !dragCurrent) return false;
 
   const width = Math.abs(dragCurrent.x - dragStart.x);
@@ -479,6 +482,7 @@ canvas.addEventListener("pointerup", (event) => {
 canvas.addEventListener("pointercancel", () => clearSelection());
 
 canvas.addEventListener("wheel", (event) => {
+  hasFullFrame = false;
   event.preventDefault();
   scale *= event.deltaY < 0 ? 0.76 : 1.28;
   render();
