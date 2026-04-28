@@ -34,7 +34,7 @@ the boundary detail sits between the two.
 - Cyclic coloring with adjustable **Color Density** and **Gradient Offset**.
 - Sequential colormaps are mirrored for smooth cyclic transitions.
 - Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
-- Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom.
+- Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom, arrow keys to pan.
 - Animated infinite zoom that auto-pans toward boundary detail.
 - Multiple colormaps and curated zoom targets.
 - ARIA-compliant controls, keyboard navigation, and live regions.
