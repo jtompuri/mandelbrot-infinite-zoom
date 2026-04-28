@@ -1,6 +1,6 @@
 # Mandelbrot Infinite Zoom
 
-![Mandelbrot overview in Early sunset colormap](images/target-examples/mandelbrot-overview-earlysunset-q340.jpeg)
+![Mandelbrot overview in Clear sky colormap](images/target-examples/mandelbrot-overview-clearsky-q340.jpeg)
 
 Browser-based Mandelbrot explorer with progressive rendering, adaptive
 anti-aliasing, and drag-to-zoom selection. Rendering runs in a Web Worker;
@@ -66,22 +66,22 @@ Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 <!-- markdownlint-disable MD060 -->
 | | | |
 |---|---|---|
-| ![Seahorse valley](images/target-examples/mandelbrot-seahorse-valley-earlysunset-q340.jpeg) Seahorse valley | ![Seahorse](images/target-examples/mandelbrot-seahorse-earlysunset-q340.jpeg) Seahorse | ![Spiral arms](images/target-examples/mandelbrot-spiral-arms-earlysunset-q340.jpeg) Spiral arms |
-| ![Period-2 bulb](images/target-examples/mandelbrot-period-2-bulb-earlysunset-q340.jpeg) Period-2 bulb | ![Top bulb](images/target-examples/mandelbrot-top-bulb-earlysunset-q340.jpeg) Top bulb | ![Elephant valley](images/target-examples/mandelbrot-elephant-valley-earlysunset-q340.jpeg) Elephant valley |
-| ![Triple spiral valley](images/target-examples/mandelbrot-triple-spiral-valley-earlysunset-q340.jpeg) Triple spiral valley | ![Mini Mandelbrot](images/target-examples/mandelbrot-mini-mandelbrot-earlysunset-q340.jpeg) Mini Mandelbrot | ![Lightning](images/target-examples/mandelbrot-lightning-earlysunset-q340.jpeg) Lightning |
-| ![Misiurewicz dendrite](images/target-examples/mandelbrot-misiurewicz-dendrite-earlysunset-q340.jpeg) Misiurewicz dendrite | ![Scepter](images/target-examples/mandelbrot-scepter-earlysunset-q340.jpeg) Scepter | ![Deep spiral](images/target-examples/mandelbrot-deep-spiral-earlysunset-q340.jpeg) Deep spiral |
+| ![Seahorse valley](images/target-examples/mandelbrot-seahorse-valley-clearsky-q340.jpeg) Seahorse valley | ![Seahorse](images/target-examples/mandelbrot-seahorse-clearsky-q340.jpeg) Seahorse | ![Spiral arms](images/target-examples/mandelbrot-spiral-arms-clearsky-q340.jpeg) Spiral arms |
+| ![Period-2 bulb](images/target-examples/mandelbrot-period-2-bulb-clearsky-q340.jpeg) Period-2 bulb | ![Top bulb](images/target-examples/mandelbrot-top-bulb-clearsky-q340.jpeg) Top bulb | ![Elephant valley](images/target-examples/mandelbrot-elephant-valley-clearsky-q340.jpeg) Elephant valley |
+| ![Triple spiral valley](images/target-examples/mandelbrot-triple-spiral-valley-clearsky-q340.jpeg) Triple spiral valley | ![Mini Mandelbrot](images/target-examples/mandelbrot-mini-mandelbrot-clearsky-q340.jpeg) Mini Mandelbrot | ![Lightning](images/target-examples/mandelbrot-lightning-clearsky-q340.jpeg) Lightning |
+| ![Misiurewicz dendrite](images/target-examples/mandelbrot-misiurewicz-dendrite-clearsky-q340.jpeg) Misiurewicz dendrite | ![Scepter](images/target-examples/mandelbrot-scepter-clearsky-q340.jpeg) Scepter | ![Deep spiral](images/target-examples/mandelbrot-deep-spiral-clearsky-q340.jpeg) Deep spiral |
 <!-- markdownlint-enable MD060 -->
 
 ## Colormaps
 
-Default colormap is **Early sunset**. Sequential colormaps are mirrored for smooth cyclic transitions.
+Default colormap is **Clear sky**. Sequential colormaps are mirrored for smooth cyclic transitions.
 
 The same Period-2 bulb target rendered in each available colormap:
 
 <!-- markdownlint-disable MD060 -->
 | | | |
 |---|---|---|
-| ![Early sunset](images/colormap-examples/mandelbrot-period-2-bulb-earlysunset-q340.jpeg) Early sunset | ![Aurora](images/colormap-examples/mandelbrot-period-2-bulb-aurora-q340.jpeg) Aurora | ![Magma](images/colormap-examples/mandelbrot-period-2-bulb-magma-q340.jpeg) Magma |
+| ![Clear sky](images/colormap-examples/mandelbrot-period-2-bulb-clearsky-q340.jpeg) Clear sky | ![Aurora](images/colormap-examples/mandelbrot-period-2-bulb-aurora-q340.jpeg) Aurora | ![Magma](images/colormap-examples/mandelbrot-period-2-bulb-magma-q340.jpeg) Magma |
 | ![Inferno](images/colormap-examples/mandelbrot-period-2-bulb-inferno-q340.jpeg) Inferno | ![Plasma](images/colormap-examples/mandelbrot-period-2-bulb-plasma-q340.jpeg) Plasma | ![Viridis](images/colormap-examples/mandelbrot-period-2-bulb-viridis-q340.jpeg) Viridis |
 | ![Cividis](images/colormap-examples/mandelbrot-period-2-bulb-cividis-q340.jpeg) Cividis | ![Turbo](images/colormap-examples/mandelbrot-period-2-bulb-turbo-q340.jpeg) Turbo | ![Rocket](images/colormap-examples/mandelbrot-period-2-bulb-rocket-q340.jpeg) Rocket |
 | ![Mako](images/colormap-examples/mandelbrot-period-2-bulb-mako-q340.jpeg) Mako | ![Twilight](images/colormap-examples/mandelbrot-period-2-bulb-twilight-q340.jpeg) Twilight | |
