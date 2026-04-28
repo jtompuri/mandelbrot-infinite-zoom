@@ -425,7 +425,7 @@ addEventListener("keydown", (event) => {
     event.target instanceof HTMLSelectElement
   )
     return;
-  const step = event.shiftKey ? 0.2 : 0.075;
+  const step = event.shiftKey ? 0.2 : 0.05;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
     zoomBy(0.5);
