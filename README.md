@@ -31,13 +31,13 @@ the boundary detail sits between the two.
 
 - Progressive preview + full render pipeline.
 - Adaptive anti-aliasing presets: Off, 2x, 3x, 4x.
-- **Ultra Fractal-inspired Coloring**: Supports cyclic coloring with adjustable **Color Density** and **Gradient Offset**.
-- **Smart Colormaps**: Perceptually uniform maps are automatically mirrored to support smooth cyclic transitions without jumps.
+- Cyclic coloring with adjustable **Color Density** and **Gradient Offset**.
+- Sequential colormaps are mirrored for smooth cyclic transitions.
 - Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
 - Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom.
 - Animated infinite zoom that auto-pans toward boundary detail.
 - Multiple colormaps and curated zoom targets.
-- **Accessibility**: ARIA-compliant controls, keyboard navigation, and live regions for status updates.
+- ARIA-compliant controls, keyboard navigation, and live regions.
 - Save the current frame as PNG (filename includes the selected target,
   colormap, and quality).
 
@@ -74,7 +74,7 @@ Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
 ## Colormaps
 
-Default colormap is **Early sunset**. All sequential colormaps are automatically mirrored to ensure smooth cyclic transitions when using density and offset.
+Default colormap is **Early sunset**. Sequential colormaps are mirrored for smooth cyclic transitions.
 
 The same Period-2 bulb target rendered in each available colormap:
 
