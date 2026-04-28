@@ -7,27 +7,27 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <canvas id="fractal"></canvas>
+  <canvas id="fractal" role="img" aria-label="Mandelbrot set fractal visualization"></canvas>
 
   <section class="toolbar" aria-label="Mandelbrot controls">
     <div class="brand">
       <h1>Mandelbrot</h1>
-      <span class="readout" id="fps">0 fps</span>
+      <span class="readout" id="fps" aria-label="Frames per second">0 fps</span>
       <button class="icon-button" id="collapse" title="Hide controls" aria-label="Hide controls">-</button>
     </div>
     <div class="quick-actions">
-      <button class="primary" id="toggle">Play</button>
-      <button id="reset">Reset</button>
-      <button class="hot" id="save">Save PNG</button>
+      <button class="primary" id="toggle" aria-label="Play zoom animation">Play</button>
+      <button id="reset" aria-label="Reset position to target default">Reset</button>
+      <button class="hot" id="save" aria-label="Save current view as PNG">Save PNG</button>
     </div>
     <div class="zoom-actions">
       <button id="zoom-out" title="Zoom out (-)" aria-label="Zoom out">−</button>
-      <button id="zoom-reset" title="Reset zoom (0)" aria-label="Reset zoom">1:1</button>
+      <button id="zoom-reset" title="Reset zoom (0)" aria-label="Reset zoom to 1:1 scale">1:1</button>
       <button id="zoom-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
     </div>
     <div class="controls">
       <label class="wide">Target
-        <select id="target">
+        <select id="target" aria-label="Select fractal target location">
           <option value="-0.5,0,3.15">Overview</option>
           <option value="-0.75,0.1,0.05">Seahorse valley</option>
           <option value="-0.743643887,0.131825904,0.0001">Seahorse spiral</option>
@@ -45,7 +45,7 @@
         </select>
       </label>
       <label>Colormap
-        <select id="colormap">
+        <select id="colormap" aria-label="Select color palette">
           <option value="earlysunset" selected>Early sunset</option>
           <option value="aurora">Aurora</option>
           <option value="magma">Magma</option>
@@ -76,17 +76,17 @@
         <input id="speed" type="range" min="1" max="100" value="42">
       </label>
       <label id="density-control" title="Color density mapping scale factor">Density <span class="value" id="density-value">1.00</span>
-        <button class="reset-slider" id="density-reset" type="button" title="Reset density" aria-label="Reset density">↺</button>
+        <button class="reset-slider" id="density-reset" type="button" title="Reset density" aria-label="Reset color density to 1.00">↺</button>
         <input id="density" type="range" min="0.01" max="10" step="0.01" value="1.00">
       </label>
       <label id="offset-control" title="Gradient offset (units)">Offset <span class="value" id="offset-value">0</span>
-        <button class="reset-slider" id="offset-reset" type="button" title="Reset offset" aria-label="Reset offset">↺</button>
+        <button class="reset-slider" id="offset-reset" type="button" title="Reset offset" aria-label="Reset gradient offset to 0">↺</button>
         <input id="offset" type="range" min="0" max="167" step="1" value="0">
       </label>
     </div>
   </section>
 
-  <div class="meter" id="meter"></div>
+  <div class="meter" id="meter" aria-live="polite"></div>
   <div class="selection" id="selection"></div>
   <script src="/app.js" defer></script>
 </body>

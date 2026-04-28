@@ -293,5 +293,25 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn("0.985 - speed * 0.205", app)
 
 
+    def test_ui_accessibility_attributes(self):
+        html = read_static("index.html")
+        
+        # Canvas label
+        self.assertIn('role="img"', html)
+        self.assertIn('aria-label="Mandelbrot set fractal visualization"', html)
+        
+        # ARIA live for status
+        self.assertIn('aria-live="polite"', html)
+        
+        # ARIA labels for buttons
+        self.assertIn('aria-label="Play zoom animation"', html)
+        self.assertIn('aria-label="Save current view as PNG"', html)
+        self.assertIn('aria-label="Reset position to target default"', html)
+        
+        # ARIA labels for reset buttons
+        self.assertIn('aria-label="Reset color density to 1.00"', html)
+        self.assertIn('aria-label="Reset gradient offset to 0"', html)
+
+
 if __name__ == "__main__":
     unittest.main()
