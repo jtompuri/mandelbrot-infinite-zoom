@@ -19,8 +19,14 @@ const qualityValue = document.getElementById("quality-value");
 const speedValue = document.getElementById("speed-value");
 const qualityReset = document.getElementById("quality-reset");
 const speedReset = document.getElementById("speed-reset");
+const useCyclicCheckbox = document.getElementById("use-cyclic");
+const densityControl = document.getElementById("density-control");
+const densityInput = document.getElementById("density");
+const densityValue = document.getElementById("density-value");
+const densityReset = document.getElementById("density-reset");
 const QUALITY_DEFAULT = qualityInput.value;
 const SPEED_DEFAULT = speedInput.value;
+const DENSITY_DEFAULT = "0.2";
 const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
@@ -58,7 +64,9 @@ function readHashState() {
     x, y, s,
     q: Number(params.get("q")) || null,
     aa: Number(params.get("aa")) || null,
-    c: params.get("c") || null
+    c: params.get("c") || null,
+    cyc: params.get("cyc") === "1",
+    den: parseFloat(params.get("den")) || null
   };
 }
 
@@ -76,6 +84,20 @@ function applyHashState(state) {
   if (state.c && [...colormapSelect.options].some((o) => o.value === state.c)) {
     colormapSelect.value = state.c;
   }
+  useCyclicCheckbox.checked = state.cyc;
+  if (state.den !== null && state.den >= parseFloat(densityInput.min) && state.den <= parseFloat(densityInput.max)) {
+    densityInput.value = String(state.den);
+    densityValue.textContent = densityInput.value;
+  }
+  updateDensityUI();
+}
+
+function updateDensityUI() {
+  if (useCyclicCheckbox.checked) {
+    densityControl.style.display = "inline-flex";
+  } else {
+    densityControl.style.display = "none";
+  }
 }
 
 function writeHashState() {
@@ -90,6 +112,10 @@ function writeHashState() {
     params.set("q", qualityInput.value);
     params.set("aa", antialiasSelect.value);
     params.set("c", colormapSelect.value);
+    if (useCyclicCheckbox.checked) {
+      params.set("cyc", "1");
+      params.set("den", densityInput.value);
+    }
     history.replaceState(null, "", `#${params.toString()}`);
   }, 250);
 }
@@ -125,6 +151,7 @@ function render() {
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
   const maxIter = effectiveMaxIter();
+  const colorDensity = useCyclicCheckbox.checked ? parseFloat(densityInput.value) : 0;
   meter.textContent = `rendering | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
@@ -138,6 +165,7 @@ function render() {
     maxIter,
     samples,
     aaMode,
+    colorDensity,
     colormap: colormapSelect.value
   };
 
@@ -519,6 +547,14 @@ addEventListener("keydown", (event) => {
 targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
+useCyclicCheckbox.addEventListener("change", () => {
+  updateDensityUI();
+  render();
+});
+densityInput.addEventListener("input", () => {
+  densityValue.textContent = densityInput.value;
+  render();
+});
 qualityInput.addEventListener("input", () => {
   qualityValue.textContent = qualityInput.value;
   render();
@@ -534,6 +570,11 @@ qualityReset.addEventListener("click", () => {
 speedReset.addEventListener("click", () => {
   speedInput.value = SPEED_DEFAULT;
   speedValue.textContent = SPEED_DEFAULT;
+});
+densityReset.addEventListener("click", () => {
+  densityInput.value = DENSITY_DEFAULT;
+  densityValue.textContent = DENSITY_DEFAULT;
+  render();
 });
 
 canvas.addEventListener("pointerdown", (event) => {
