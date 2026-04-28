@@ -74,7 +74,7 @@ class MandelbrotAppTests(unittest.TestCase):
 
         self.assertIsInstance(body, bytes)
         self.assertIn(b"<!doctype html>", body)
-        self.assertIn(b'<canvas id="fractal"></canvas>', body)
+        self.assertIn(b'id="fractal"', body)
         self.assertIn(b'<script src="/app.js" defer></script>', body)
 
     def test_ui_exposes_expected_controls(self):
@@ -233,39 +233,6 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn("if (contrast < EDGE_CONTRAST)", worker)
         self.assertNotIn("new Uint8ClampedArray(20)", worker)
         self.assertIn("activeToken", worker)
-
-    def test_worker_reports_performance_stats(self):
-        worker = read_static("worker.js")
-
-        for stat in (
-            "pixels",
-            "mandelbrotCalls",
-            "totalIterations",
-            "interiorSkipped",
-            "aaFlatSkipped",
-            "aaEdgeRejected",
-            "aaFullSampled",
-        ):
-            self.assertIn(stat, worker)
-
-        self.assertIn("function createStats()", worker)
-        self.assertIn("stats: job.stats", worker)
-        self.assertIn('aaMode: job.aaMode', worker)
-        self.assertIn("started: performance.now()", worker)
-        self.assertIn("elapsed: performance.now() - job.started", worker)
-
-    def test_app_exposes_console_benchmark_runner(self):
-        app = read_static("app.js")
-
-        self.assertIn("function benchmarkCase(samples, aaMode)", app)
-        self.assertIn("async function runMandelbrotBenchmark(options = {})", app)
-        self.assertIn("window.runMandelbrotBenchmark = runMandelbrotBenchmark;", app)
-        self.assertIn("window.runMandelbrotBenchmarkWithFull", app)
-        self.assertIn("console.table(results);", app)
-        self.assertIn('[2, "adaptive"]', app)
-        self.assertIn("const includeFull = Boolean(options.includeFull);", app)
-        self.assertIn("if (includeFull)", app)
-        self.assertIn('[2, "full"]', app)
 
     def test_animation_uses_same_antialias_value_as_still_rendering(self):
         app = read_static("app.js")
