@@ -37,6 +37,7 @@ the boundary detail sits between the two.
 - Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom.
 - Animated infinite zoom that auto-pans toward boundary detail.
 - Multiple colormaps and curated zoom targets.
+- **Accessibility**: ARIA-compliant controls, keyboard navigation, and live regions for status updates.
 - Save the current frame as PNG (filename includes the selected target,
   colormap, and quality).
 
