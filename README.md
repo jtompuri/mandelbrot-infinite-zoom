@@ -50,44 +50,26 @@ Opens `http://127.0.0.1:8000/` in your browser. Use `--port`, `--host`, or
 `--no-browser` to override defaults. Requires Python 3.10+ and a modern
 browser; no third-party runtime dependencies.
 
-## Development setup
-
-For running tests with `pytest`, set up a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements-dev.txt
-```
-
 ## Tests
+
+Tests run with the standard library:
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Or with `pytest` (after the development setup above):
-
-```bash
-pytest
-```
-
-## Benchmarking
-
-From the browser DevTools console while the app is open:
-
-- `runProductionBenchmark()`: measures the user-facing render path.
-- `runMandelbrotBenchmark()`: adaptive-AA benchmark with per-pixel stats.
-- `runMandelbrotBenchmarkWithFull()`: also runs full-supersampling cases for reference.
+Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
 ## Targets
 
+<!-- markdownlint-disable MD060 -->
 | | | |
 |---|---|---|
 | ![Seahorse valley](images/target-examples/mandelbrot-seahorse-valley-earlysunset-q340.jpeg) Seahorse valley | ![Seahorse](images/target-examples/mandelbrot-seahorse-earlysunset-q340.jpeg) Seahorse | ![Spiral arms](images/target-examples/mandelbrot-spiral-arms-earlysunset-q340.jpeg) Spiral arms |
 | ![Period-2 bulb](images/target-examples/mandelbrot-period-2-bulb-earlysunset-q340.jpeg) Period-2 bulb | ![Top bulb](images/target-examples/mandelbrot-top-bulb-earlysunset-q340.jpeg) Top bulb | ![Elephant valley](images/target-examples/mandelbrot-elephant-valley-earlysunset-q340.jpeg) Elephant valley |
 | ![Triple spiral valley](images/target-examples/mandelbrot-triple-spiral-valley-earlysunset-q340.jpeg) Triple spiral valley | ![Mini Mandelbrot](images/target-examples/mandelbrot-mini-mandelbrot-earlysunset-q340.jpeg) Mini Mandelbrot | ![Lightning](images/target-examples/mandelbrot-lightning-earlysunset-q340.jpeg) Lightning |
 | ![Misiurewicz dendrite](images/target-examples/mandelbrot-misiurewicz-dendrite-earlysunset-q340.jpeg) Misiurewicz dendrite | ![Scepter](images/target-examples/mandelbrot-scepter-earlysunset-q340.jpeg) Scepter | ![Deep spiral](images/target-examples/mandelbrot-deep-spiral-earlysunset-q340.jpeg) Deep spiral |
+<!-- markdownlint-enable MD060 -->
 
 ## Colormaps
 
@@ -95,10 +77,11 @@ Default colormap is **Early sunset**. All sequential colormaps are automatically
 
 The same Period-2 bulb target rendered in each available colormap:
 
+<!-- markdownlint-disable MD060 -->
 | | | |
 |---|---|---|
 | ![Early sunset](images/colormap-examples/mandelbrot-period-2-bulb-earlysunset-q340.jpeg) Early sunset | ![Aurora](images/colormap-examples/mandelbrot-period-2-bulb-aurora-q340.jpeg) Aurora | ![Magma](images/colormap-examples/mandelbrot-period-2-bulb-magma-q340.jpeg) Magma |
 | ![Inferno](images/colormap-examples/mandelbrot-period-2-bulb-inferno-q340.jpeg) Inferno | ![Plasma](images/colormap-examples/mandelbrot-period-2-bulb-plasma-q340.jpeg) Plasma | ![Viridis](images/colormap-examples/mandelbrot-period-2-bulb-viridis-q340.jpeg) Viridis |
 | ![Cividis](images/colormap-examples/mandelbrot-period-2-bulb-cividis-q340.jpeg) Cividis | ![Turbo](images/colormap-examples/mandelbrot-period-2-bulb-turbo-q340.jpeg) Turbo | ![Rocket](images/colormap-examples/mandelbrot-period-2-bulb-rocket-q340.jpeg) Rocket |
 | ![Mako](images/colormap-examples/mandelbrot-period-2-bulb-mako-q340.jpeg) Mako | ![Twilight](images/colormap-examples/mandelbrot-period-2-bulb-twilight-q340.jpeg) Twilight | |
-
+<!-- markdownlint-enable MD060 -->
