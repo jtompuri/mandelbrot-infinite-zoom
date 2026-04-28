@@ -90,11 +90,13 @@ class MandelbrotAppTests(unittest.TestCase):
             "antialias",
             "quality",
             "speed",
+            "density",
+            "offset",
         ):
             self.assertIn(f'id="{control_id}"', html)
 
         self.assertIn('id="selection"', html)
-        self.assertNotIn('id="render"', html)
+        self.assertNotIn('id="use-cyclic"', html)
         self.assertNotIn('id="animation-antialias"', html)
 
     def test_beautiful_targets_are_available(self):
