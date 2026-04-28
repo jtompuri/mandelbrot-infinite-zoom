@@ -117,7 +117,7 @@ function applyHashState(state) {
 }
 
 function writeHashState() {
-  // Coalesce updates so rapid renders (e.g. animation) don't churn history.
+  // Update URL hash with current view state.
   if (pendingHashUpdate !== null) return;
   pendingHashUpdate = setTimeout(() => {
     pendingHashUpdate = null;
@@ -147,10 +147,7 @@ function fitCanvas() {
   }
 }
 
-// Auto-scale maxIter with zoom depth. Base quality from the slider acts as
-// a multiplier on a depth-based budget so that deep zooms get the iteration
-// headroom they need to resolve boundary detail without saturating. The
-// growth rate is intentionally gentle so interactive zoom stays responsive.
+// Adjust max iterations based on zoom depth.
 function effectiveMaxIter() {
   const base = Number(qualityInput.value);
   if (scale >= 3.15) return base;
@@ -241,10 +238,7 @@ function zoomStep() {
   const centroid = pendingCentroid;
   pendingCentroid = null;
 
-  // Pan toward the boundary-band centroid when one is available, then
-  // zoom in. If a frame produces no usable centroid (e.g. featureless
-  // dive), we just keep the current center and zoom anyway; the user
-  // can pause or recenter manually.
+  // Pan toward the boundary-band centroid.
   if (centroid !== null && centroid.x !== null) {
     const aspect = canvas.width / canvas.height;
     const viewWidth = scale * aspect;

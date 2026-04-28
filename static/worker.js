@@ -109,11 +109,7 @@ const colorMaps = {
 };
 
 const paletteCache = new Map();
-// Worker tracks only the latest render token. When the main thread sends
-// a newer render request, in-flight chunked renders abort on the next step
-// because their token no longer matches activeToken. Benchmark and
-// production-path requests bypass this by resolving directly via their own
-// resolver maps in app.js, so they are not affected by token churn.
+// Abort in-flight renders when a new request arrives.
 let activeToken = 0;
 
 function mix(a, b, t) {
@@ -221,12 +217,7 @@ function mandelbrotColor(
     zy2 = zy * zy;
 
     if (zx2 + zy2 > 4) {
-      // Boundary band weighting: pixels in the middle of the iteration
-      // range contribute most. Both fast-escape (low i) and near-saturated
-      // (high i) pixels are treated as featureless. The hard band gates
-      // (5%-90% of maxIter) ensure that views where nearly every pixel
-      // saturates near maxIter contribute nothing rather than sneaking
-      // through with tiny but nonzero weights.
+      // Weight samples near the boundary for auto-panning.
       if (centroid !== null) {
         const t = (i + 1) / maxIter;
         if (t >= 0.05 && t <= 0.9) {
@@ -241,9 +232,7 @@ function mandelbrotColor(
       return packedColor(smooth, lut, colorDensity, gradientOffset);
     }
   }
-  // Bounded pixels (never escaped) are the strongest saturation signal:
-  // they look identical regardless of position, so a view dominated by
-  // them is featureless.
+  // Bounded pixels (inside the set).
   if (centroid !== null) centroid.bounded += 1;
   return INSIDE_RGB;
 }
@@ -413,10 +402,7 @@ function createRenderJob(params) {
   const colorDensity =
     params.colorDensity !== undefined ? params.colorDensity : 1.0;
   const gradientOffset = params.gradientOffset || 0;
-  // Track a weighted centroid of high-iteration escape samples on full
-  // (non-preview, non-benchmark) renders. The main thread uses it during
-  // animation to pan toward boundary detail and avoid drifting into
-  // featureless regions.
+  // Weighted centroid for boundary auto-panning.
   const centroid =
     !benchmark && params.previewScale <= 1
       ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, bounded: 0 }
