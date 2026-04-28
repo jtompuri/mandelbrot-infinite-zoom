@@ -31,8 +31,10 @@ the boundary detail sits between the two.
 
 - Progressive preview + full render pipeline.
 - Adaptive anti-aliasing presets: Off, 2x, 3x, 4x.
+- **Ultra Fractal-inspired Coloring**: Supports cyclic coloring with adjustable **Color Density** and **Gradient Offset**.
+- **Smart Colormaps**: Perceptually uniform maps are automatically mirrored to support smooth cyclic transitions without jumps.
 - Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
-- Keyboard shortcuts: `+` / `−` to zoom, `0` to reset zoom.
+- Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom.
 - Animated infinite zoom that auto-pans toward boundary detail.
 - Multiple colormaps and curated zoom targets.
 - Save the current frame as PNG (filename includes the selected target,
@@ -90,12 +92,14 @@ From the browser DevTools console while the app is open:
 
 ## Colormaps
 
+Default colormap is **Early sunset**. All sequential colormaps are automatically mirrored to ensure smooth cyclic transitions when using density and offset.
+
 The same Spiral arms target rendered in each available colormap:
 
 | | | |
 |---|---|---|
-| ![Aurora](images/colormap-examples/mandelbrot-spiral-arms-aurora-q340.jpg) Aurora | ![Magma](images/colormap-examples/mandelbrot-spiral-arms-magma-q340.jpg) Magma | ![Inferno](images/colormap-examples/mandelbrot-spiral-arms-inferno-q340.jpg) Inferno |
-| ![Plasma](images/colormap-examples/mandelbrot-spiral-arms-plasma-q340.jpg) Plasma | ![Viridis](images/colormap-examples/mandelbrot-spiral-arms-viridis-q340.jpg) Viridis | ![Cividis](images/colormap-examples/mandelbrot-spiral-arms-cividis-q340.jpg) Cividis |
-| ![Turbo](images/colormap-examples/mandelbrot-spiral-arms-turbo-q340.jpg) Turbo | ![Rocket](images/colormap-examples/mandelbrot-spiral-arms-rocket-q340.jpg) Rocket | ![Mako](images/colormap-examples/mandelbrot-spiral-arms-mako-q340.jpg) Mako |
-| ![Twilight](images/colormap-examples/mandelbrot-spiral-arms-twilight-q340.jpg) Twilight | | |
+| ![Early sunset](images/colormap-examples/ultrafractal-colormap.png) Early sunset | ![Aurora](images/colormap-examples/mandelbrot-spiral-arms-aurora-q340.jpg) Aurora | ![Magma](images/colormap-examples/mandelbrot-spiral-arms-magma-q340.jpg) Magma |
+| ![Inferno](images/colormap-examples/mandelbrot-spiral-arms-inferno-q340.jpg) Inferno | ![Plasma](images/colormap-examples/mandelbrot-spiral-arms-plasma-q340.jpg) Plasma | ![Viridis](images/colormap-examples/mandelbrot-spiral-arms-viridis-q340.jpg) Viridis |
+| ![Cividis](images/colormap-examples/mandelbrot-spiral-arms-cividis-q340.jpg) Cividis | ![Turbo](images/colormap-examples/mandelbrot-spiral-arms-turbo-q340.jpg) Turbo | ![Rocket](images/colormap-examples/mandelbrot-spiral-arms-rocket-q340.jpg) Rocket |
+| ![Mako](images/colormap-examples/mandelbrot-spiral-arms-mako-q340.jpg) Mako | ![Twilight](images/colormap-examples/mandelbrot-spiral-arms-twilight-q340.jpg) Twilight | |
 

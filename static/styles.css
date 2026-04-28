@@ -182,24 +182,6 @@ label > .wide-row {
   color: var(--text);
 }
 
-.toggle-label {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 500;
-}
-.toggle-label input[type="checkbox"] {
-  margin: 0;
-  width: 1.2rem;
-  height: 1.2rem;
-  cursor: pointer;
-}
-
 input[type="range"] {
   width: 100%;
   accent-color: var(--accent);

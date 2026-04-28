@@ -5,8 +5,6 @@ const EDGE_CONTRAST = 72;
 
 const colorMaps = {
   aurora: [[0.00, [3, 5, 14]], [0.12, [35, 20, 91]], [0.28, [36, 93, 171]], [0.46, [27, 185, 166]], [0.62, [250, 221, 132]], [0.78, [234, 93, 77]], [1.00, [250, 248, 240]]],
-  seahorse: [[0.00, [8, 7, 12]], [0.12, [28, 32, 110]], [0.26, [46, 112, 205]], [0.42, [140, 194, 230]], [0.56, [230, 155, 38]], [0.72, [208, 80, 40]], [0.88, [120, 24, 46]], [1.00, [250, 245, 230]]],
-  sunset: [[0.00, [2, 4, 14]], [0.08, [8, 18, 70]], [0.18, [20, 70, 170]], [0.30, [35, 150, 210]], [0.42, [125, 205, 235]], [0.55, [230, 245, 245]], [0.66, [255, 225, 130]], [0.78, [255, 175, 60]], [0.90, [240, 115, 30]], [1.00, [205, 70, 25]]],
   magma: [[0.00, [0, 0, 4]], [0.16, [44, 17, 95]], [0.33, [116, 31, 129]], [0.50, [183, 55, 121]], [0.67, [238, 110, 82]], [0.84, [252, 190, 111]], [1.00, [252, 253, 191]]],
   inferno: [[0.00, [0, 0, 4]], [0.15, [31, 12, 72]], [0.32, [85, 15, 109]], [0.50, [187, 55, 84]], [0.66, [249, 142, 8]], [0.82, [249, 201, 50]], [1.00, [252, 255, 164]]],
   plasma: [[0.00, [13, 8, 135]], [0.17, [84, 2, 163]], [0.34, [139, 10, 165]], [0.50, [185, 50, 137]], [0.67, [219, 92, 104]], [0.84, [244, 157, 68]], [1.00, [240, 249, 33]]],
@@ -16,7 +14,7 @@ const colorMaps = {
   rocket: [[0.00, [3, 5, 26]], [0.18, [33, 18, 59]], [0.36, [86, 28, 80]], [0.54, [152, 47, 72]], [0.72, [215, 95, 62]], [0.88, [246, 169, 118]], [1.00, [250, 235, 221]]],
   mako: [[0.00, [11, 4, 5]], [0.16, [31, 28, 55]], [0.34, [37, 64, 90]], [0.52, [35, 102, 120]], [0.70, [52, 148, 145]], [0.86, [135, 194, 161]], [1.00, [222, 245, 229]]],
   twilight: [[0.00, [225, 216, 226]], [0.12, [173, 187, 217]], [0.25, [114, 145, 201]], [0.38, [78, 96, 168]], [0.50, [35, 23, 85]], [0.62, [82, 26, 76]], [0.75, [161, 65, 80]], [0.88, [217, 138, 117]], [1.00, [225, 216, 226]]],
-  ultrafractal: [[0.000, [26, 88, 184]], [0.030, [32, 107, 203]], [0.290, [237, 255, 255]], [0.512, [255, 170, 0]], [0.728, [0, 2, 0]], [0.870, [0, 7, 100]], [1.000, [26, 88, 184]]]
+  earlysunset: [[0.000, [26, 88, 184]], [0.030, [32, 107, 203]], [0.290, [237, 255, 255]], [0.512, [255, 170, 0]], [0.728, [0, 2, 0]], [0.870, [0, 7, 100]], [1.000, [26, 88, 184]]]
 };
 
 const paletteCache = new Map();
@@ -71,8 +69,22 @@ function paletteLut(name) {
 
   const stops = colorMaps[name] || colorMaps.aurora;
   const lut = new Uint32Array(LUT_SIZE);
+
+  // Check if the colormap is cyclic (start color matches end color)
+  const first = stops[0][1];
+  const last = stops[stops.length - 1][1];
+  const isCyclic = first[0] === last[0] && first[1] === last[1] && first[2] === last[2];
+
   for (let i = 0; i < LUT_SIZE; i++) {
-    const color = colorAt(i / (LUT_SIZE - 1), stops);
+    let t = i / (LUT_SIZE - 1);
+
+    if (!isCyclic) {
+      // Mirror sequential maps (like Viridis/Magma) so they cycle gradually without a jump
+      t = t * 2;
+      if (t > 1) t = 2 - t;
+    }
+
+    const color = colorAt(t, stops);
     const r = Math.max(0, Math.min(255, Math.round(color[0])));
     const g = Math.max(0, Math.min(255, Math.round(color[1])));
     const b = Math.max(0, Math.min(255, Math.round(color[2])));
@@ -91,20 +103,9 @@ function isProbablyInside(cx, cy) {
   return bulbX * bulbX + cy * cy <= 0.0625;
 }
 
-function packedColor(smooth, maxIter, lut, colorDensity = 0) {
-  let value;
-  if (colorDensity > 0) {
-    // Ultra Fractal cyclic smooth coloring
-    // 1 index unit = 1 iteration step. Gradient wraps over its "length" (400 positions).
-    // colorDensity multiplies the iteration value.
-    let t = (smooth * colorDensity) / 400;
-    value = t - Math.floor(t);
-  } else {
-    // Adaptive app-default bounded coloring
-    const wave = 0.5 + 0.5 * Math.sin(0.08 * smooth);
-    const base = Math.pow(smooth / maxIter, 0.32);
-    value = Math.max(0, Math.min(1, 0.82 * base + 0.18 * wave));
-  }
+function packedColor(smooth, lut, colorDensity, gradientOffset) {
+  let t = (smooth * colorDensity + gradientOffset) / 167;
+  let value = t - Math.floor(t);
   const index = Math.round(value * (LUT_SIZE - 1));
   return lut[index];
 }
@@ -116,7 +117,7 @@ function writePacked(data, offset, color) {
   data[offset + 3] = 255;
 }
 
-function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity) {
+function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity, gradientOffset) {
   if (stats !== null) stats.mandelbrotCalls += 1;
 
   if (isProbablyInside(cx, cy)) {
@@ -158,7 +159,7 @@ function mandelbrotColor(cx, cy, maxIter, lut, stats, centroid, colorDensity) {
         }
       }
       const smooth = i + 1 - Math.log2(0.5 * Math.log2(zx2 + zy2));
-      return packedColor(smooth, maxIter, lut, colorDensity);
+      return packedColor(smooth, lut, colorDensity, gradientOffset);
     }
   }
 
@@ -180,23 +181,23 @@ function colorDistance(left, right) {
 }
 
 function sampleInto(job, offset, centerX, centerY) {
-  const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats, centroid, colorDensity } = job;
+  const { data, dx, dy, maxIter, samples, lut, useAdaptive, stats, centroid, colorDensity, gradientOffset } = job;
   if (stats !== null) stats.pixels += 1;
   if (centroid !== null) centroid.pixels += 1;
 
   if (samples === 1) {
-    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity));
+    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity, gradientOffset));
     return;
   }
 
   let centerColor = 0;
 
   if (useAdaptive) {
-    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity);
+    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, stats, centroid, colorDensity, gradientOffset);
     writePacked(data, offset, centerColor);
 
-    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity);
-    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, stats, null, colorDensity);
+    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity, gradientOffset);
+    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, stats, null, colorDensity, gradientOffset);
     let contrast = colorDistance(centerColor, rightColor) + colorDistance(centerColor, downColor);
 
     if (contrast < FLAT_CONTRAST) {
@@ -205,8 +206,8 @@ function sampleInto(job, offset, centerX, centerY) {
     }
 
     if (contrast < EDGE_CONTRAST) {
-      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity);
-      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, stats, null, colorDensity);
+      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, stats, null, colorDensity, gradientOffset);
+      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, stats, null, colorDensity, gradientOffset);
       contrast += colorDistance(centerColor, leftColor) + colorDistance(centerColor, upColor);
       if (contrast < EDGE_CONTRAST) {
         if (stats !== null) stats.aaEdgeRejected += 1;
@@ -230,7 +231,7 @@ function sampleInto(job, offset, centerX, centerY) {
     const sampleY = subStartY + (sy + 0.5) * subStepY;
     for (let sx = 0; sx < samples; sx++) {
       const sampleX = subStartX + (sx + 0.5) * subStepX;
-      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, stats, null, colorDensity);
+      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, stats, null, colorDensity, gradientOffset);
       red += (color >> 16) & 255;
       green += (color >> 8) & 255;
       blue += color & 255;
@@ -258,7 +259,8 @@ function createRenderJob(params) {
   const samples = params.previewScale > 1 ? 1 : params.samples;
   const maxIter = params.previewScale > 1 ? Math.max(48, Math.floor(params.maxIter * 0.38)) : params.maxIter;
   const benchmark = Boolean(params.benchmark);
-  const colorDensity = params.colorDensity || 0;
+  const colorDensity = params.colorDensity !== undefined ? params.colorDensity : 1.0;
+  const gradientOffset = params.gradientOffset || 0;
   const stats = benchmark ? createStats() : null;
   // Track a weighted centroid of high-iteration escape samples on full
   // (non-preview, non-benchmark) renders. The main thread uses it during
@@ -285,6 +287,7 @@ function createRenderJob(params) {
     samples,
     maxIter,
     colorDensity,
+    gradientOffset,
     aaMode,
     useAdaptive: aaMode !== "full",
     stats,

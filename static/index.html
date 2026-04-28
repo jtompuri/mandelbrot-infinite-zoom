@@ -46,6 +46,7 @@
       </label>
       <label>Colormap
         <select id="colormap">
+          <option value="earlysunset" selected>Early sunset</option>
           <option value="aurora">Aurora</option>
           <option value="magma">Magma</option>
           <option value="inferno">Inferno</option>
@@ -56,9 +57,6 @@
           <option value="rocket">Rocket</option>
           <option value="mako">Mako</option>
           <option value="twilight">Twilight</option>
-          <option value="seahorse">Seahorse</option>
-          <option value="sunset">Sunset</option>
-          <option value="ultrafractal">Ultra Fractal Default (-52)</option>
         </select>
       </label>
       <label>Anti-alias
@@ -77,13 +75,13 @@
         <button class="reset-slider" id="speed-reset" type="button" title="Reset speed" aria-label="Reset speed">↺</button>
         <input id="speed" type="range" min="1" max="100" value="42">
       </label>
-      <label class="toggle-label" title="Enable cyclic coloring matching Ultra Fractal">
-        <input type="checkbox" id="use-cyclic">
-        Cyclic
-      </label>
-      <label id="density-control" style="display: none;">Density <span class="value" id="density-value">0.2</span>
+      <label id="density-control" title="Color density mapping scale factor">Density <span class="value" id="density-value">1.00</span>
         <button class="reset-slider" id="density-reset" type="button" title="Reset density" aria-label="Reset density">↺</button>
-        <input id="density" type="range" min="0.01" max="3" step="0.01" value="0.2">
+        <input id="density" type="range" min="0.01" max="10" step="0.01" value="1.00">
+      </label>
+      <label id="offset-control" title="Gradient offset (units)">Offset <span class="value" id="offset-value">0</span>
+        <button class="reset-slider" id="offset-reset" type="button" title="Reset offset" aria-label="Reset offset">↺</button>
+        <input id="offset" type="range" min="0" max="167" step="1" value="0">
       </label>
     </div>
   </section>

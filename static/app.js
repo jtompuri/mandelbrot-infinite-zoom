@@ -19,14 +19,16 @@ const qualityValue = document.getElementById("quality-value");
 const speedValue = document.getElementById("speed-value");
 const qualityReset = document.getElementById("quality-reset");
 const speedReset = document.getElementById("speed-reset");
-const useCyclicCheckbox = document.getElementById("use-cyclic");
-const densityControl = document.getElementById("density-control");
 const densityInput = document.getElementById("density");
 const densityValue = document.getElementById("density-value");
 const densityReset = document.getElementById("density-reset");
+const offsetInput = document.getElementById("offset");
+const offsetValue = document.getElementById("offset-value");
+const offsetReset = document.getElementById("offset-reset");
 const QUALITY_DEFAULT = qualityInput.value;
 const SPEED_DEFAULT = speedInput.value;
-const DENSITY_DEFAULT = "0.2";
+const DENSITY_DEFAULT = "1.00";
+const OFFSET_DEFAULT = "0";
 const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
@@ -65,8 +67,8 @@ function readHashState() {
     q: Number(params.get("q")) || null,
     aa: Number(params.get("aa")) || null,
     c: params.get("c") || null,
-    cyc: params.get("cyc") === "1",
-    den: parseFloat(params.get("den")) || null
+    den: parseFloat(params.get("den")),
+    off: parseFloat(params.get("off"))
   };
 }
 
@@ -84,21 +86,16 @@ function applyHashState(state) {
   if (state.c && [...colormapSelect.options].some((o) => o.value === state.c)) {
     colormapSelect.value = state.c;
   }
-  useCyclicCheckbox.checked = state.cyc;
-  if (state.den !== null && state.den >= parseFloat(densityInput.min) && state.den <= parseFloat(densityInput.max)) {
+  if (!isNaN(state.den) && state.den >= parseFloat(densityInput.min) && state.den <= parseFloat(densityInput.max)) {
     densityInput.value = String(state.den);
-    densityValue.textContent = densityInput.value;
+    densityValue.textContent = parseFloat(densityInput.value).toFixed(2);
   }
-  updateDensityUI();
+  if (!isNaN(state.off) && state.off >= parseFloat(offsetInput.min) && state.off <= parseFloat(offsetInput.max)) {
+    offsetInput.value = String(state.off);
+    offsetValue.textContent = offsetInput.value;
+  }
 }
 
-function updateDensityUI() {
-  if (useCyclicCheckbox.checked) {
-    densityControl.style.display = "inline-flex";
-  } else {
-    densityControl.style.display = "none";
-  }
-}
 
 function writeHashState() {
   // Coalesce updates so rapid renders (e.g. animation) don't churn history.
@@ -112,10 +109,8 @@ function writeHashState() {
     params.set("q", qualityInput.value);
     params.set("aa", antialiasSelect.value);
     params.set("c", colormapSelect.value);
-    if (useCyclicCheckbox.checked) {
-      params.set("cyc", "1");
-      params.set("den", densityInput.value);
-    }
+    params.set("den", densityInput.value);
+    params.set("off", offsetInput.value);
     history.replaceState(null, "", `#${params.toString()}`);
   }, 250);
 }
@@ -151,7 +146,8 @@ function render() {
   const samples = Number(antialiasSelect.value);
   const aaMode = "adaptive";
   const maxIter = effectiveMaxIter();
-  const colorDensity = useCyclicCheckbox.checked ? parseFloat(densityInput.value) : 0;
+  const colorDensity = parseFloat(densityInput.value);
+  const gradientOffset = parseFloat(offsetInput.value);
   meter.textContent = `rendering | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
 
   const params = {
@@ -166,6 +162,7 @@ function render() {
     samples,
     aaMode,
     colorDensity,
+    gradientOffset,
     colormap: colormapSelect.value
   };
 
@@ -547,12 +544,12 @@ addEventListener("keydown", (event) => {
 targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
-useCyclicCheckbox.addEventListener("change", () => {
-  updateDensityUI();
+densityInput.addEventListener("input", () => {
+  densityValue.textContent = parseFloat(densityInput.value).toFixed(2);
   render();
 });
-densityInput.addEventListener("input", () => {
-  densityValue.textContent = densityInput.value;
+offsetInput.addEventListener("input", () => {
+  offsetValue.textContent = offsetInput.value;
   render();
 });
 qualityInput.addEventListener("input", () => {
@@ -574,6 +571,11 @@ speedReset.addEventListener("click", () => {
 densityReset.addEventListener("click", () => {
   densityInput.value = DENSITY_DEFAULT;
   densityValue.textContent = DENSITY_DEFAULT;
+  render();
+});
+offsetReset.addEventListener("click", () => {
+  offsetInput.value = OFFSET_DEFAULT;
+  offsetValue.textContent = OFFSET_DEFAULT;
   render();
 });
 
