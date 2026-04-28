@@ -127,11 +127,10 @@ class MandelbrotAppTests(unittest.TestCase):
             self.assertLessEqual(y, 1.3, option)
 
     def test_colormap_select_matches_worker_color_maps(self):
-        selected_colormaps = {
-            option["value"]
-            for option in parse_selects()["colormap"]
-        }
-        defined_colormaps = set(re.findall(r"^\s{2}([a-z]+): \[", read_static("worker.js"), re.MULTILINE))
+        selected_colormaps = {option["value"] for option in parse_selects()["colormap"]}
+        defined_colormaps = set(
+            re.findall(r"^\s{2}([a-z]+): \[", read_static("worker.js"), re.MULTILINE)
+        )
 
         self.assertEqual(selected_colormaps, defined_colormaps)
 
@@ -211,7 +210,9 @@ class MandelbrotAppTests(unittest.TestCase):
 
         self.assertIn('const backBuffer = document.createElement("canvas");', app)
         self.assertIn("backCtx.putImageData(image, 0, 0);", app)
-        self.assertIn("ctx.drawImage(backBuffer, 0, 0, canvas.width, canvas.height);", app)
+        self.assertIn(
+            "ctx.drawImage(backBuffer, 0, 0, canvas.width, canvas.height);", app
+        )
         self.assertNotIn("ctx.putImageData(image, 0, 0);", app)
 
     def test_worker_has_calculation_optimizations(self):
@@ -260,22 +261,21 @@ class MandelbrotAppTests(unittest.TestCase):
             self.assertIn('max="100"', match.group(0))
         self.assertIn("0.985 - speed * 0.205", app)
 
-
     def test_ui_accessibility_attributes(self):
         html = read_static("index.html")
-        
+
         # Canvas label
         self.assertIn('role="img"', html)
         self.assertIn('aria-label="Mandelbrot set fractal visualization"', html)
-        
+
         # ARIA live for status
         self.assertIn('aria-live="polite"', html)
-        
+
         # ARIA labels for buttons
         self.assertIn('aria-label="Play zoom animation"', html)
         self.assertIn('aria-label="Save current view as PNG"', html)
         self.assertIn('aria-label="Reset position to target default"', html)
-        
+
         # ARIA labels for reset buttons
         self.assertIn('aria-label="Reset color density to 1.00"', html)
         self.assertIn('aria-label="Reset gradient offset to 0"', html)

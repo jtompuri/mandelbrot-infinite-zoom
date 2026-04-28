@@ -4,17 +4,108 @@ const FLAT_CONTRAST = 24;
 const EDGE_CONTRAST = 72;
 
 const colorMaps = {
-  aurora: [[0.00, [3, 5, 14]], [0.12, [35, 20, 91]], [0.28, [36, 93, 171]], [0.46, [27, 185, 166]], [0.62, [250, 221, 132]], [0.78, [234, 93, 77]], [1.00, [250, 248, 240]]],
-  magma: [[0.00, [0, 0, 4]], [0.16, [44, 17, 95]], [0.33, [116, 31, 129]], [0.50, [183, 55, 121]], [0.67, [238, 110, 82]], [0.84, [252, 190, 111]], [1.00, [252, 253, 191]]],
-  inferno: [[0.00, [0, 0, 4]], [0.15, [31, 12, 72]], [0.32, [85, 15, 109]], [0.50, [187, 55, 84]], [0.66, [249, 142, 8]], [0.82, [249, 201, 50]], [1.00, [252, 255, 164]]],
-  plasma: [[0.00, [13, 8, 135]], [0.17, [84, 2, 163]], [0.34, [139, 10, 165]], [0.50, [185, 50, 137]], [0.67, [219, 92, 104]], [0.84, [244, 157, 68]], [1.00, [240, 249, 33]]],
-  viridis: [[0.00, [68, 1, 84]], [0.18, [70, 50, 126]], [0.36, [54, 92, 141]], [0.54, [39, 127, 142]], [0.72, [31, 161, 135]], [0.88, [122, 209, 81]], [1.00, [253, 231, 37]]],
-  cividis: [[0.00, [0, 32, 76]], [0.18, [38, 57, 106]], [0.36, [77, 82, 112]], [0.54, [117, 111, 105]], [0.72, [160, 146, 91]], [0.88, [208, 190, 72]], [1.00, [255, 233, 69]]],
-  turbo: [[0.00, [48, 18, 59]], [0.14, [50, 101, 213]], [0.28, [27, 187, 238]], [0.42, [76, 226, 101]], [0.58, [210, 226, 27]], [0.74, [251, 140, 21]], [0.88, [210, 45, 39]], [1.00, [122, 4, 3]]],
-  rocket: [[0.00, [3, 5, 26]], [0.18, [33, 18, 59]], [0.36, [86, 28, 80]], [0.54, [152, 47, 72]], [0.72, [215, 95, 62]], [0.88, [246, 169, 118]], [1.00, [250, 235, 221]]],
-  mako: [[0.00, [11, 4, 5]], [0.16, [31, 28, 55]], [0.34, [37, 64, 90]], [0.52, [35, 102, 120]], [0.70, [52, 148, 145]], [0.86, [135, 194, 161]], [1.00, [222, 245, 229]]],
-  twilight: [[0.00, [225, 216, 226]], [0.12, [173, 187, 217]], [0.25, [114, 145, 201]], [0.38, [78, 96, 168]], [0.50, [35, 23, 85]], [0.62, [82, 26, 76]], [0.75, [161, 65, 80]], [0.88, [217, 138, 117]], [1.00, [225, 216, 226]]],
-  earlysunset: [[0.000, [26, 88, 184]], [0.030, [32, 107, 203]], [0.290, [237, 255, 255]], [0.512, [255, 170, 0]], [0.728, [0, 2, 0]], [0.870, [0, 7, 100]], [1.000, [26, 88, 184]]]
+  aurora: [
+    [0.0, [3, 5, 14]],
+    [0.12, [35, 20, 91]],
+    [0.28, [36, 93, 171]],
+    [0.46, [27, 185, 166]],
+    [0.62, [250, 221, 132]],
+    [0.78, [234, 93, 77]],
+    [1.0, [250, 248, 240]],
+  ],
+  magma: [
+    [0.0, [0, 0, 4]],
+    [0.16, [44, 17, 95]],
+    [0.33, [116, 31, 129]],
+    [0.5, [183, 55, 121]],
+    [0.67, [238, 110, 82]],
+    [0.84, [252, 190, 111]],
+    [1.0, [252, 253, 191]],
+  ],
+  inferno: [
+    [0.0, [0, 0, 4]],
+    [0.15, [31, 12, 72]],
+    [0.32, [85, 15, 109]],
+    [0.5, [187, 55, 84]],
+    [0.66, [249, 142, 8]],
+    [0.82, [249, 201, 50]],
+    [1.0, [252, 255, 164]],
+  ],
+  plasma: [
+    [0.0, [13, 8, 135]],
+    [0.17, [84, 2, 163]],
+    [0.34, [139, 10, 165]],
+    [0.5, [185, 50, 137]],
+    [0.67, [219, 92, 104]],
+    [0.84, [244, 157, 68]],
+    [1.0, [240, 249, 33]],
+  ],
+  viridis: [
+    [0.0, [68, 1, 84]],
+    [0.18, [70, 50, 126]],
+    [0.36, [54, 92, 141]],
+    [0.54, [39, 127, 142]],
+    [0.72, [31, 161, 135]],
+    [0.88, [122, 209, 81]],
+    [1.0, [253, 231, 37]],
+  ],
+  cividis: [
+    [0.0, [0, 32, 76]],
+    [0.18, [38, 57, 106]],
+    [0.36, [77, 82, 112]],
+    [0.54, [117, 111, 105]],
+    [0.72, [160, 146, 91]],
+    [0.88, [208, 190, 72]],
+    [1.0, [255, 233, 69]],
+  ],
+  turbo: [
+    [0.0, [48, 18, 59]],
+    [0.14, [50, 101, 213]],
+    [0.28, [27, 187, 238]],
+    [0.42, [76, 226, 101]],
+    [0.58, [210, 226, 27]],
+    [0.74, [251, 140, 21]],
+    [0.88, [210, 45, 39]],
+    [1.0, [122, 4, 3]],
+  ],
+  rocket: [
+    [0.0, [3, 5, 26]],
+    [0.18, [33, 18, 59]],
+    [0.36, [86, 28, 80]],
+    [0.54, [152, 47, 72]],
+    [0.72, [215, 95, 62]],
+    [0.88, [246, 169, 118]],
+    [1.0, [250, 235, 221]],
+  ],
+  mako: [
+    [0.0, [11, 4, 5]],
+    [0.16, [31, 28, 55]],
+    [0.34, [37, 64, 90]],
+    [0.52, [35, 102, 120]],
+    [0.7, [52, 148, 145]],
+    [0.86, [135, 194, 161]],
+    [1.0, [222, 245, 229]],
+  ],
+  twilight: [
+    [0.0, [225, 216, 226]],
+    [0.12, [173, 187, 217]],
+    [0.25, [114, 145, 201]],
+    [0.38, [78, 96, 168]],
+    [0.5, [35, 23, 85]],
+    [0.62, [82, 26, 76]],
+    [0.75, [161, 65, 80]],
+    [0.88, [217, 138, 117]],
+    [1.0, [225, 216, 226]],
+  ],
+  earlysunset: [
+    [0.0, [26, 88, 184]],
+    [0.03, [32, 107, 203]],
+    [0.29, [237, 255, 255]],
+    [0.512, [255, 170, 0]],
+    [0.728, [0, 2, 0]],
+    [0.87, [0, 7, 100]],
+    [1.0, [26, 88, 184]],
+  ],
 };
 
 const paletteCache = new Map();
@@ -24,8 +115,6 @@ const paletteCache = new Map();
 // production-path requests bypass this by resolving directly via their own
 // resolver maps in app.js, so they are not affected by token churn.
 let activeToken = 0;
-
-
 
 function mix(a, b, t) {
   return a + (b - a) * t;
@@ -45,7 +134,7 @@ function colorAt(t, stops) {
       return [
         mix(left[1][0], right[1][0], local),
         mix(left[1][1], right[1][1], local),
-        mix(left[1][2], right[1][2], local)
+        mix(left[1][2], right[1][2], local),
       ];
     }
   }
@@ -61,7 +150,8 @@ function paletteLut(name) {
   // Check if the colormap is cyclic (start color matches end color)
   const first = stops[0][1];
   const last = stops[stops.length - 1][1];
-  const isCyclic = first[0] === last[0] && first[1] === last[1] && first[2] === last[2];
+  const isCyclic =
+    first[0] === last[0] && first[1] === last[1] && first[2] === last[2];
 
   for (let i = 0; i < LUT_SIZE; i++) {
     let t = i / (LUT_SIZE - 1);
@@ -105,8 +195,15 @@ function writePacked(data, offset, color) {
   data[offset + 3] = 255;
 }
 
-function mandelbrotColor(cx, cy, maxIter, lut, centroid, colorDensity, gradientOffset) {
-
+function mandelbrotColor(
+  cx,
+  cy,
+  maxIter,
+  lut,
+  centroid,
+  colorDensity,
+  gradientOffset,
+) {
   if (isProbablyInside(cx, cy)) {
     if (centroid !== null) centroid.bounded += 1;
     return INSIDE_RGB;
@@ -152,48 +249,114 @@ function mandelbrotColor(cx, cy, maxIter, lut, centroid, colorDensity, gradientO
 }
 
 function colorDistance(left, right) {
-  return Math.abs(((left >> 16) & 255) - ((right >> 16) & 255))
-    + Math.abs(((left >> 8) & 255) - ((right >> 8) & 255))
-    + Math.abs((left & 255) - (right & 255));
+  return (
+    Math.abs(((left >> 16) & 255) - ((right >> 16) & 255)) +
+    Math.abs(((left >> 8) & 255) - ((right >> 8) & 255)) +
+    Math.abs((left & 255) - (right & 255))
+  );
 }
 
 function sampleInto(job, offset, centerX, centerY) {
-  const { data, dx, dy, maxIter, samples, lut, useAdaptive, centroid, colorDensity, gradientOffset } = job;
-  
+  const {
+    data,
+    dx,
+    dy,
+    maxIter,
+    samples,
+    lut,
+    useAdaptive,
+    centroid,
+    colorDensity,
+    gradientOffset,
+  } = job;
+
   if (centroid !== null) centroid.pixels += 1;
 
   if (samples === 1) {
-    writePacked(data, offset, mandelbrotColor(centerX, centerY, maxIter, lut, centroid, colorDensity, gradientOffset));
+    writePacked(
+      data,
+      offset,
+      mandelbrotColor(
+        centerX,
+        centerY,
+        maxIter,
+        lut,
+        centroid,
+        colorDensity,
+        gradientOffset,
+      ),
+    );
     return;
   }
 
   let centerColor = 0;
 
   if (useAdaptive) {
-    centerColor = mandelbrotColor(centerX, centerY, maxIter, lut, centroid, colorDensity, gradientOffset);
+    centerColor = mandelbrotColor(
+      centerX,
+      centerY,
+      maxIter,
+      lut,
+      centroid,
+      colorDensity,
+      gradientOffset,
+    );
     writePacked(data, offset, centerColor);
 
-    const rightColor = mandelbrotColor(centerX + dx * 0.45, centerY, maxIter, lut, null, colorDensity, gradientOffset);
-    const downColor = mandelbrotColor(centerX, centerY + dy * 0.45, maxIter, lut, null, colorDensity, gradientOffset);
-    let contrast = colorDistance(centerColor, rightColor) + colorDistance(centerColor, downColor);
+    const rightColor = mandelbrotColor(
+      centerX + dx * 0.45,
+      centerY,
+      maxIter,
+      lut,
+      null,
+      colorDensity,
+      gradientOffset,
+    );
+    const downColor = mandelbrotColor(
+      centerX,
+      centerY + dy * 0.45,
+      maxIter,
+      lut,
+      null,
+      colorDensity,
+      gradientOffset,
+    );
+    let contrast =
+      colorDistance(centerColor, rightColor) +
+      colorDistance(centerColor, downColor);
 
     if (contrast < FLAT_CONTRAST) {
-      
       return;
     }
 
     if (contrast < EDGE_CONTRAST) {
-      const leftColor = mandelbrotColor(centerX - dx * 0.45, centerY, maxIter, lut, null, colorDensity, gradientOffset);
-      const upColor = mandelbrotColor(centerX, centerY - dy * 0.45, maxIter, lut, null, colorDensity, gradientOffset);
-      contrast += colorDistance(centerColor, leftColor) + colorDistance(centerColor, upColor);
+      const leftColor = mandelbrotColor(
+        centerX - dx * 0.45,
+        centerY,
+        maxIter,
+        lut,
+        null,
+        colorDensity,
+        gradientOffset,
+      );
+      const upColor = mandelbrotColor(
+        centerX,
+        centerY - dy * 0.45,
+        maxIter,
+        lut,
+        null,
+        colorDensity,
+        gradientOffset,
+      );
+      contrast +=
+        colorDistance(centerColor, leftColor) +
+        colorDistance(centerColor, upColor);
       if (contrast < EDGE_CONTRAST) {
-        
         return;
       }
     }
   }
 
-  
   let red = 0;
   let green = 0;
   let blue = 0;
@@ -208,7 +371,15 @@ function sampleInto(job, offset, centerX, centerY) {
     const sampleY = subStartY + (sy + 0.5) * subStepY;
     for (let sx = 0; sx < samples; sx++) {
       const sampleX = subStartX + (sx + 0.5) * subStepX;
-      const color = mandelbrotColor(sampleX, sampleY, maxIter, lut, null, colorDensity, gradientOffset);
+      const color = mandelbrotColor(
+        sampleX,
+        sampleY,
+        maxIter,
+        lut,
+        null,
+        colorDensity,
+        gradientOffset,
+      );
       red += (color >> 16) & 255;
       green += (color >> 8) & 255;
       blue += color & 255;
@@ -234,17 +405,22 @@ function createRenderJob(params) {
   const dy = viewHeight / Math.max(1, height - 1);
   const lut = paletteLut(params.colormap);
   const samples = params.previewScale > 1 ? 1 : params.samples;
-  const maxIter = params.previewScale > 1 ? Math.max(48, Math.floor(params.maxIter * 0.38)) : params.maxIter;
+  const maxIter =
+    params.previewScale > 1
+      ? Math.max(48, Math.floor(params.maxIter * 0.38))
+      : params.maxIter;
   const benchmark = Boolean(params.benchmark);
-  const colorDensity = params.colorDensity !== undefined ? params.colorDensity : 1.0;
+  const colorDensity =
+    params.colorDensity !== undefined ? params.colorDensity : 1.0;
   const gradientOffset = params.gradientOffset || 0;
   // Track a weighted centroid of high-iteration escape samples on full
   // (non-preview, non-benchmark) renders. The main thread uses it during
   // animation to pan toward boundary detail and avoid drifting into
   // featureless regions.
-  const centroid = (!benchmark && params.previewScale <= 1)
-    ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, bounded: 0 }
-    : null;
+  const centroid =
+    !benchmark && params.previewScale <= 1
+      ? { xSum: 0, ySum: 0, wSum: 0, count: 0, pixels: 0, bounded: 0 }
+      : null;
 
   const aaMode = params.aaMode || "adaptive";
   return {
@@ -268,7 +444,7 @@ function createRenderJob(params) {
     useAdaptive: aaMode !== "full",
     centroid,
     started: performance.now(),
-    y: 0
+    y: 0,
   };
 }
 
@@ -287,30 +463,39 @@ function renderRows(job, endY) {
 }
 
 function finishRender(job) {
-  self.postMessage({
-    type: "rendered",
-    token: job.token,
-    phase: job.phase,
-    width: job.width,
-    height: job.height,
-    maxIter: job.maxIter,
-    samples: job.samples,
-    aaMode: job.aaMode,
-    elapsed: performance.now() - job.started,
-    benchmark: Boolean(job.benchmark),
-    label: job.label,
-    centroid: job.centroid
-      ? {
-          x: job.centroid.wSum > 0 ? job.centroid.xSum / job.centroid.wSum : null,
-          y: job.centroid.wSum > 0 ? job.centroid.ySum / job.centroid.wSum : null,
-          // Fraction of pixels in the productive boundary band.
-          coverage: job.centroid.count / Math.max(1, job.centroid.pixels),
-          // Fraction of pixels that never escaped (interior dive).
-          bounded: job.centroid.bounded / Math.max(1, job.centroid.pixels)
-        }
-      : null,
-    buffer: job.data.buffer
-  }, [job.data.buffer]);
+  self.postMessage(
+    {
+      type: "rendered",
+      token: job.token,
+      phase: job.phase,
+      width: job.width,
+      height: job.height,
+      maxIter: job.maxIter,
+      samples: job.samples,
+      aaMode: job.aaMode,
+      elapsed: performance.now() - job.started,
+      benchmark: Boolean(job.benchmark),
+      label: job.label,
+      centroid: job.centroid
+        ? {
+            x:
+              job.centroid.wSum > 0
+                ? job.centroid.xSum / job.centroid.wSum
+                : null,
+            y:
+              job.centroid.wSum > 0
+                ? job.centroid.ySum / job.centroid.wSum
+                : null,
+            // Fraction of pixels in the productive boundary band.
+            coverage: job.centroid.count / Math.max(1, job.centroid.pixels),
+            // Fraction of pixels that never escaped (interior dive).
+            bounded: job.centroid.bounded / Math.max(1, job.centroid.pixels),
+          }
+        : null,
+      buffer: job.data.buffer,
+    },
+    [job.data.buffer],
+  );
 }
 
 function renderPreview(params) {
@@ -333,7 +518,10 @@ function scheduleYield(callback) {
 
 function renderFull(params) {
   const job = createRenderJob(params);
-  const rowsPerChunk = Math.max(2, Math.floor(18 / (job.samples * job.samples)));
+  const rowsPerChunk = Math.max(
+    2,
+    Math.floor(18 / (job.samples * job.samples)),
+  );
 
   function step() {
     if (job.token !== activeToken) return;
@@ -347,7 +535,7 @@ function renderFull(params) {
         token: job.token,
         progress: job.y / job.height,
         maxIter: job.maxIter,
-        samples: job.samples
+        samples: job.samples,
       });
       scheduleYield(step);
       return;

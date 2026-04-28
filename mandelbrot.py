@@ -33,7 +33,9 @@ def read_static_file(path):
     if not static_path or not static_path.is_file():
         return None, None
 
-    content_type = mimetypes.guess_type(static_path.name)[0] or "application/octet-stream"
+    content_type = (
+        mimetypes.guess_type(static_path.name)[0] or "application/octet-stream"
+    )
     if static_path.suffix == ".js":
         content_type = "text/javascript"
     elif static_path.suffix == ".css":
@@ -80,13 +82,19 @@ def find_free_port(preferred):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a local Mandelbrot infinite zoom app.")
+    parser = argparse.ArgumentParser(
+        description="Run a local Mandelbrot infinite zoom app."
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
-    port = find_free_port(args.port) if args.host in ("127.0.0.1", "localhost") else args.port
+    port = (
+        find_free_port(args.port)
+        if args.host in ("127.0.0.1", "localhost")
+        else args.port
+    )
     server = ThreadingHTTPServer((args.host, port), MandelbrotHandler)
     url = f"http://{args.host}:{port}/"
 

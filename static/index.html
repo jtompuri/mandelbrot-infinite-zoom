@@ -1,93 +1,183 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mandelbrot Infinite Zoom</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <canvas id="fractal" role="img" aria-label="Mandelbrot set fractal visualization"></canvas>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mandelbrot Infinite Zoom</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <canvas
+      id="fractal"
+      role="img"
+      aria-label="Mandelbrot set fractal visualization"
+    ></canvas>
 
-  <section class="toolbar" aria-label="Mandelbrot controls">
-    <div class="brand">
-      <h1>Mandelbrot</h1>
-      <span class="readout" id="fps" aria-label="Frames per second">0 fps</span>
-      <button class="icon-button" id="collapse" title="Hide controls" aria-label="Hide controls">-</button>
-    </div>
-    <div class="quick-actions">
-      <button class="primary" id="toggle" aria-label="Play zoom animation">Play</button>
-      <button id="reset" aria-label="Reset position to target default">Reset</button>
-      <button class="hot" id="save" aria-label="Save current view as PNG">Save PNG</button>
-    </div>
-    <div class="zoom-actions">
-      <button id="zoom-out" title="Zoom out (-)" aria-label="Zoom out">−</button>
-      <button id="zoom-reset" title="Reset zoom (0)" aria-label="Reset zoom to 1:1 scale">1:1</button>
-      <button id="zoom-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
-    </div>
-    <div class="controls">
-      <label class="wide">Target
-        <select id="target" aria-label="Select fractal target location">
-          <option value="-0.5,0,3.15">Overview</option>
-          <option value="-0.75,0.1,0.05">Seahorse valley</option>
-          <option value="-0.743643887,0.131825904,0.0001">Seahorse spiral</option>
-          <option value="-1.25,0,0.36">Period-2 bulb</option>
-          <option value="-0.122,0.745,0.36">Top bulb</option>
-          <option value="0.282,0.001,0.03">Elephant valley</option>
-          <option value="-0.0669124,0.661554,0.06">Triple spiral valley</option>
-          <option value="-0.74364085,0.13182733,0.0003">Spiral arms</option>
-          <option value="-1.768,0,0.06">Mini Mandelbrot</option>
-          <option value="-0.743599,0.117081,0.0112">Seahorse</option>
-          <option value="0.3602404434,-0.6413130610,0.00007">Lightning</option>
-          <option value="-0.10109636,0.95628651,0.0006">Misiurewicz dendrite</option>
-          <option value="-1.25066,0.01847,0.022">Scepter</option>
-          <option value="-0.7436438870371509,0.13182590420532977,0.00002">Deep spiral</option>
-        </select>
-      </label>
-      <label>Colormap
-        <select id="colormap" aria-label="Select color palette">
-          <option value="earlysunset" selected>Early sunset</option>
-          <option value="aurora">Aurora</option>
-          <option value="magma">Magma</option>
-          <option value="inferno">Inferno</option>
-          <option value="plasma">Plasma</option>
-          <option value="viridis">Viridis</option>
-          <option value="cividis">Cividis</option>
-          <option value="turbo">Turbo</option>
-          <option value="rocket">Rocket</option>
-          <option value="mako">Mako</option>
-          <option value="twilight">Twilight</option>
-        </select>
-      </label>
-      <label>Anti-alias
-        <select id="antialias">
-          <option value="1">Off</option>
-          <option value="2">2x</option>
-          <option value="3">3x</option>
-          <option value="4">4x</option>
-        </select>
-      </label>
-      <label>Quality <span class="value" id="quality-value">340</span>
-        <button class="reset-slider" id="quality-reset" type="button" title="Reset quality" aria-label="Reset quality">↺</button>
-        <input id="quality" type="range" min="80" max="2000" value="340">
-      </label>
-      <label>Speed <span class="value" id="speed-value">42</span>
-        <button class="reset-slider" id="speed-reset" type="button" title="Reset speed" aria-label="Reset speed">↺</button>
-        <input id="speed" type="range" min="1" max="100" value="42">
-      </label>
-      <label id="density-control" title="Color density mapping scale factor">Density <span class="value" id="density-value">1.00</span>
-        <button class="reset-slider" id="density-reset" type="button" title="Reset density" aria-label="Reset color density to 1.00">↺</button>
-        <input id="density" type="range" min="0.01" max="10" step="0.01" value="1.00">
-      </label>
-      <label id="offset-control" title="Gradient offset (units)">Offset <span class="value" id="offset-value">0</span>
-        <button class="reset-slider" id="offset-reset" type="button" title="Reset offset" aria-label="Reset gradient offset to 0">↺</button>
-        <input id="offset" type="range" min="0" max="167" step="1" value="0">
-      </label>
-    </div>
-  </section>
+    <section class="toolbar" aria-label="Mandelbrot controls">
+      <div class="brand">
+        <h1>Mandelbrot</h1>
+        <span class="readout" id="fps" aria-label="Frames per second"
+          >0 fps</span
+        >
+        <button
+          class="icon-button"
+          id="collapse"
+          title="Hide controls"
+          aria-label="Hide controls"
+        >
+          -
+        </button>
+      </div>
+      <div class="quick-actions">
+        <button class="primary" id="toggle" aria-label="Play zoom animation">
+          Play
+        </button>
+        <button id="reset" aria-label="Reset position to target default">
+          Reset
+        </button>
+        <button class="hot" id="save" aria-label="Save current view as PNG">
+          Save PNG
+        </button>
+      </div>
+      <div class="zoom-actions">
+        <button id="zoom-out" title="Zoom out (-)" aria-label="Zoom out">
+          −
+        </button>
+        <button
+          id="zoom-reset"
+          title="Reset zoom (0)"
+          aria-label="Reset zoom to 1:1 scale"
+        >
+          1:1
+        </button>
+        <button id="zoom-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
+      </div>
+      <div class="controls">
+        <label class="wide"
+          >Target
+          <select id="target" aria-label="Select fractal target location">
+            <option value="-0.5,0,3.15">Overview</option>
+            <option value="-0.75,0.1,0.05">Seahorse valley</option>
+            <option value="-0.743643887,0.131825904,0.0001">
+              Seahorse spiral
+            </option>
+            <option value="-1.25,0,0.36">Period-2 bulb</option>
+            <option value="-0.122,0.745,0.36">Top bulb</option>
+            <option value="0.282,0.001,0.03">Elephant valley</option>
+            <option value="-0.0669124,0.661554,0.06">
+              Triple spiral valley
+            </option>
+            <option value="-0.74364085,0.13182733,0.0003">Spiral arms</option>
+            <option value="-1.768,0,0.06">Mini Mandelbrot</option>
+            <option value="-0.743599,0.117081,0.0112">Seahorse</option>
+            <option value="0.3602404434,-0.6413130610,0.00007">
+              Lightning
+            </option>
+            <option value="-0.10109636,0.95628651,0.0006">
+              Misiurewicz dendrite
+            </option>
+            <option value="-1.25066,0.01847,0.022">Scepter</option>
+            <option value="-0.7436438870371509,0.13182590420532977,0.00002">
+              Deep spiral
+            </option>
+          </select>
+        </label>
+        <label
+          >Colormap
+          <select id="colormap" aria-label="Select color palette">
+            <option value="earlysunset" selected>Early sunset</option>
+            <option value="aurora">Aurora</option>
+            <option value="magma">Magma</option>
+            <option value="inferno">Inferno</option>
+            <option value="plasma">Plasma</option>
+            <option value="viridis">Viridis</option>
+            <option value="cividis">Cividis</option>
+            <option value="turbo">Turbo</option>
+            <option value="rocket">Rocket</option>
+            <option value="mako">Mako</option>
+            <option value="twilight">Twilight</option>
+          </select>
+        </label>
+        <label
+          >Anti-alias
+          <select id="antialias">
+            <option value="1">Off</option>
+            <option value="2">2x</option>
+            <option value="3">3x</option>
+            <option value="4">4x</option>
+          </select>
+        </label>
+        <label
+          >Quality <span class="value" id="quality-value">340</span>
+          <button
+            class="reset-slider"
+            id="quality-reset"
+            type="button"
+            title="Reset quality"
+            aria-label="Reset quality"
+          >
+            ↺
+          </button>
+          <input id="quality" type="range" min="80" max="2000" value="340" />
+        </label>
+        <label
+          >Speed <span class="value" id="speed-value">42</span>
+          <button
+            class="reset-slider"
+            id="speed-reset"
+            type="button"
+            title="Reset speed"
+            aria-label="Reset speed"
+          >
+            ↺
+          </button>
+          <input id="speed" type="range" min="1" max="100" value="42" />
+        </label>
+        <label id="density-control" title="Color density mapping scale factor"
+          >Density <span class="value" id="density-value">1.00</span>
+          <button
+            class="reset-slider"
+            id="density-reset"
+            type="button"
+            title="Reset density"
+            aria-label="Reset color density to 1.00"
+          >
+            ↺
+          </button>
+          <input
+            id="density"
+            type="range"
+            min="0.01"
+            max="10"
+            step="0.01"
+            value="1.00"
+          />
+        </label>
+        <label id="offset-control" title="Gradient offset (units)"
+          >Offset <span class="value" id="offset-value">0</span>
+          <button
+            class="reset-slider"
+            id="offset-reset"
+            type="button"
+            title="Reset offset"
+            aria-label="Reset gradient offset to 0"
+          >
+            ↺
+          </button>
+          <input
+            id="offset"
+            type="range"
+            min="0"
+            max="167"
+            step="1"
+            value="0"
+          />
+        </label>
+      </div>
+    </section>
 
-  <div class="meter" id="meter" aria-live="polite"></div>
-  <div class="selection" id="selection"></div>
-  <script src="/app.js" defer></script>
-</body>
+    <div class="meter" id="meter" aria-live="polite"></div>
+    <div class="selection" id="selection"></div>
+    <script src="/app.js" defer></script>
+  </body>
 </html>

@@ -58,14 +58,22 @@ function readHashState() {
   const x = Number(params.get("x"));
   const y = Number(params.get("y"));
   const s = Number(params.get("s"));
-  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(s) || s <= 0) return null;
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(s) ||
+    s <= 0
+  )
+    return null;
   return {
-    x, y, s,
+    x,
+    y,
+    s,
     q: Number(params.get("q")) || null,
     aa: Number(params.get("aa")) || null,
     c: params.get("c") || null,
     den: parseFloat(params.get("den")),
-    off: parseFloat(params.get("off"))
+    off: parseFloat(params.get("off")),
   };
 }
 
@@ -73,26 +81,40 @@ function applyHashState(state) {
   centerX = state.x;
   centerY = state.y;
   scale = state.s;
-  if (state.q && state.q >= Number(qualityInput.min) && state.q <= Number(qualityInput.max)) {
+  if (
+    state.q &&
+    state.q >= Number(qualityInput.min) &&
+    state.q <= Number(qualityInput.max)
+  ) {
     qualityInput.value = String(state.q);
     qualityValue.textContent = qualityInput.value;
   }
-  if (state.aa && [...antialiasSelect.options].some((o) => Number(o.value) === state.aa)) {
+  if (
+    state.aa &&
+    [...antialiasSelect.options].some((o) => Number(o.value) === state.aa)
+  ) {
     antialiasSelect.value = String(state.aa);
   }
   if (state.c && [...colormapSelect.options].some((o) => o.value === state.c)) {
     colormapSelect.value = state.c;
   }
-  if (!isNaN(state.den) && state.den >= parseFloat(densityInput.min) && state.den <= parseFloat(densityInput.max)) {
+  if (
+    !isNaN(state.den) &&
+    state.den >= parseFloat(densityInput.min) &&
+    state.den <= parseFloat(densityInput.max)
+  ) {
     densityInput.value = String(state.den);
     densityValue.textContent = parseFloat(densityInput.value).toFixed(2);
   }
-  if (!isNaN(state.off) && state.off >= parseFloat(offsetInput.min) && state.off <= parseFloat(offsetInput.max)) {
+  if (
+    !isNaN(state.off) &&
+    state.off >= parseFloat(offsetInput.min) &&
+    state.off <= parseFloat(offsetInput.max)
+  ) {
     offsetInput.value = String(state.off);
     offsetValue.textContent = offsetInput.value;
   }
 }
-
 
 function writeHashState() {
   // Coalesce updates so rapid renders (e.g. animation) don't churn history.
@@ -160,7 +182,7 @@ function render() {
     aaMode,
     colorDensity,
     gradientOffset,
-    colormap: colormapSelect.value
+    colormap: colormapSelect.value,
   };
 
   if (!hasFullFrame) {
@@ -257,13 +279,14 @@ function canvasPoint(event) {
     x: event.clientX - rect.left,
     y: event.clientY - rect.top,
     width: rect.width,
-    height: rect.height
+    height: rect.height,
   };
 }
 
 function recenterAt(point, shouldRender = true) {
   hasFullFrame = false;
-  centerX += (point.x / point.width - 0.5) * scale * (canvas.width / canvas.height);
+  centerX +=
+    (point.x / point.width - 0.5) * scale * (canvas.width / canvas.height);
   centerY += (point.y / point.height - 0.5) * scale;
   if (shouldRender) render();
 }
@@ -278,7 +301,7 @@ function selectionRect() {
     left: Math.min(startX, currentX),
     top: Math.min(startY, currentY),
     width: Math.abs(currentX - startX),
-    height: Math.abs(currentY - startY)
+    height: Math.abs(currentY - startY),
   };
 }
 
@@ -310,7 +333,7 @@ function zoomToSelection() {
     x: (x1 + x2) / 2,
     y: (y1 + y2) / 2,
     width: rect.width,
-    height: rect.height
+    height: rect.height,
   };
   const horizontalScale = width / rect.width;
   const verticalScale = height / rect.height;
@@ -329,8 +352,6 @@ function clearSelection() {
 
 worker.addEventListener("message", (event) => showRenderedFrame(event.data));
 
-
-
 toggle.addEventListener("click", () => {
   animating = !animating;
   toggle.textContent = animating ? "Pause" : "Play";
@@ -345,16 +366,22 @@ collapseButton.addEventListener("click", () => {
   const collapsed = toolbar.classList.toggle("collapsed");
   collapseButton.textContent = collapsed ? "+" : "-";
   collapseButton.title = collapsed ? "Show controls" : "Hide controls";
-  collapseButton.setAttribute("aria-label", collapsed ? "Show controls" : "Hide controls");
+  collapseButton.setAttribute(
+    "aria-label",
+    collapsed ? "Show controls" : "Hide controls",
+  );
 });
 resetButton.addEventListener("click", () => setTarget(targetSelect.value));
 
 function buildSaveFilename() {
-  const slugify = (text) => text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const targetSlug = slugify(targetSelect.options[targetSelect.selectedIndex]?.text || "");
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  const targetSlug = slugify(
+    targetSelect.options[targetSelect.selectedIndex]?.text || "",
+  );
   const colormapSlug = slugify(colormapSelect.value || "");
   const quality = qualityInput.value;
   const parts = ["mandelbrot"];
@@ -393,7 +420,11 @@ function panBy(fractionX, fractionY) {
 }
 
 addEventListener("keydown", (event) => {
-  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+  if (
+    event.target instanceof HTMLInputElement ||
+    event.target instanceof HTMLSelectElement
+  )
+    return;
   const step = event.shiftKey ? 0.2 : 0.075;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
@@ -481,12 +512,16 @@ canvas.addEventListener("pointerup", (event) => {
 
 canvas.addEventListener("pointercancel", () => clearSelection());
 
-canvas.addEventListener("wheel", (event) => {
-  hasFullFrame = false;
-  event.preventDefault();
-  scale *= event.deltaY < 0 ? 0.76 : 1.28;
-  render();
-}, { passive: false });
+canvas.addEventListener(
+  "wheel",
+  (event) => {
+    hasFullFrame = false;
+    event.preventDefault();
+    scale *= event.deltaY < 0 ? 0.76 : 1.28;
+    render();
+  },
+  { passive: false },
+);
 
 addEventListener("resize", fitCanvas);
 
