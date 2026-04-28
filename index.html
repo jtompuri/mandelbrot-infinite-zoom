@@ -32,8 +32,12 @@
         <button class="primary" id="toggle" aria-label="Play zoom animation">
           Play
         </button>
-        <button id="reset" aria-label="Reset position to target default">
-          Reset
+        <button
+          id="reset-view"
+          title="Reset position and zoom to selected view defaults"
+          aria-label="Reset position to selected view defaults"
+        >
+          Reset view
         </button>
         <button class="hot" id="save" aria-label="Save current view as PNG">
           Save PNG
@@ -45,7 +49,7 @@
         </button>
         <button
           id="zoom-reset"
-          title="Reset zoom (0)"
+          title="Reset zoom level only (0)"
           aria-label="Reset zoom to 1:1 scale"
         >
           1:1
@@ -54,8 +58,8 @@
       </div>
       <div class="controls">
         <label class="wide"
-          >Target
-          <select id="target" aria-label="Select fractal target location">
+          >View
+          <select id="view" aria-label="Select fractal view location">
             <option value="-0.5,0,3.15">Overview</option>
             <option value="-0.755146,0.0855796,0.01675">Seahorse valley</option>
             <option value="-0.743643887,0.131825904,0.0001">

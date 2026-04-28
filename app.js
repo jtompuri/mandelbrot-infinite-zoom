@@ -5,12 +5,12 @@ const backCtx = backBuffer.getContext("2d", { alpha: false });
 const toolbar = document.querySelector(".toolbar");
 const toggle = document.getElementById("toggle");
 const collapseButton = document.getElementById("collapse");
-const resetButton = document.getElementById("reset");
+const resetViewButton = document.getElementById("reset-view");
 const saveButton = document.getElementById("save");
 const zoomInButton = document.getElementById("zoom-in");
 const zoomOutButton = document.getElementById("zoom-out");
 const zoomResetButton = document.getElementById("zoom-reset");
-const targetSelect = document.getElementById("target");
+const viewSelect = document.getElementById("view");
 const colormapSelect = document.getElementById("colormap");
 const antialiasSelect = document.getElementById("antialias");
 const qualityInput = document.getElementById("quality");
@@ -258,7 +258,7 @@ function zoomStep() {
   render();
 }
 
-function setTarget(value) {
+function setView(value) {
   hasFullFrame = false;
   const [x, y, nextScale] = value.split(",").map(Number);
   centerX = x;
@@ -365,7 +365,7 @@ collapseButton.addEventListener("click", () => {
     collapsed ? "Show controls" : "Hide controls",
   );
 });
-resetButton.addEventListener("click", () => setTarget(targetSelect.value));
+resetViewButton.addEventListener("click", () => setView(viewSelect.value));
 
 function buildSaveFilename() {
   const slugify = (text) =>
@@ -373,13 +373,11 @@ function buildSaveFilename() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-  const targetSlug = slugify(
-    targetSelect.options[targetSelect.selectedIndex]?.text || "",
-  );
+  const viewSlug = slugify(viewSelect.options[viewSelect.selectedIndex]?.text || "");
   const colormapSlug = slugify(colormapSelect.value || "");
   const quality = qualityInput.value;
   const parts = ["mandelbrot"];
-  if (targetSlug) parts.push(targetSlug);
+  if (viewSlug) parts.push(viewSlug);
   if (colormapSlug) parts.push(colormapSlug);
   if (quality) parts.push(`q${quality}`);
   return `${parts.join("-")}.png`;
@@ -445,7 +443,7 @@ addEventListener("keydown", (event) => {
   }
 });
 
-targetSelect.addEventListener("change", () => setTarget(targetSelect.value));
+viewSelect.addEventListener("change", () => setView(viewSelect.value));
 colormapSelect.addEventListener("change", render);
 antialiasSelect.addEventListener("change", render);
 densityInput.addEventListener("input", () => {

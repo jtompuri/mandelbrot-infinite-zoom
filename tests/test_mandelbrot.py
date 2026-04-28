@@ -83,9 +83,9 @@ class MandelbrotAppTests(unittest.TestCase):
         for control_id in (
             "toggle",
             "collapse",
-            "reset",
+            "reset-view",
             "save",
-            "target",
+            "view",
             "colormap",
             "antialias",
             "quality",
@@ -113,7 +113,7 @@ class MandelbrotAppTests(unittest.TestCase):
             self.assertIn(target, html)
 
     def test_target_values_are_numeric_coordinate_triples(self):
-        target_options = parse_selects()["target"]
+        target_options = parse_selects()["view"]
 
         self.assertGreaterEqual(len(target_options), 12)
         for option in target_options:
@@ -274,7 +274,7 @@ class MandelbrotAppTests(unittest.TestCase):
         # ARIA labels for buttons
         self.assertIn('aria-label="Play zoom animation"', html)
         self.assertIn('aria-label="Save current view as PNG"', html)
-        self.assertIn('aria-label="Reset position to target default"', html)
+        self.assertIn('aria-label="Reset position to selected view defaults"', html)
 
         # ARIA labels for reset buttons
         self.assertIn('aria-label="Reset color density to 1.00"', html)

@@ -36,9 +36,9 @@ the boundary detail sits between the two.
 - Drag-to-zoom, click-to-recenter, mouse wheel, and `+` / `−` / `1:1` buttons.
 - Keyboard shortcuts: `+` / `−` / `z` / `x` to zoom, `0` to reset zoom, arrow keys to pan.
 - Animated infinite zoom that auto-pans toward boundary detail.
-- Multiple colormaps and curated zoom targets.
+- Multiple colormaps and curated views.
 - ARIA-compliant controls, keyboard navigation, and live regions.
-- Save the current frame as PNG (filename includes the selected target,
+- Save the current frame as PNG (filename includes the selected view,
   colormap, and quality).
 
 ## Run
@@ -61,7 +61,7 @@ python -m unittest discover -s tests -p 'test_*.py'
 
 Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
-## Targets
+## Views
 
 <!-- markdownlint-disable MD060 -->
 | | | |
@@ -76,7 +76,7 @@ Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
 
 Default colormap is **Clear sky**. Sequential colormaps are mirrored for smooth cyclic transitions.
 
-The same Period-2 bulb target rendered in each available colormap:
+The same Period-2 bulb view rendered in each available colormap:
 
 <!-- markdownlint-disable MD060 -->
 | | | |
