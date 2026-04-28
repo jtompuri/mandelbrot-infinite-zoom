@@ -285,11 +285,12 @@ class MandelbrotAppTests(unittest.TestCase):
     def test_speed_slider_increases_zoom_speed_to_the_right(self):
         html = read_static("index.html")
         app = read_static("app.js")
-        slider = re.search(r'<input id="speed"[^>]+>', html)
+        match = re.search(r'<input id="speed"[^>]+>', html)
 
-        self.assertIsNotNone(slider)
-        self.assertIn('min="1"', slider.group(0))
-        self.assertIn('max="100"', slider.group(0))
+        self.assertIsNotNone(match)
+        if match:
+            self.assertIn('min="1"', match.group(0))
+            self.assertIn('max="100"', match.group(0))
         self.assertIn("0.985 - speed * 0.205", app)
 
 
