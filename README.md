@@ -2,6 +2,8 @@
 
 ![Mandelbrot overview in Clear sky colormap](images/target-examples/mandelbrot-overview-clearsky-q340.jpeg)
 
+**Live Demo:** [https://jtompuri.github.io/mandelbrot-infinite-zoom](https://jtompuri.github.io/mandelbrot-infinite-zoom)
+
 Browser-based Mandelbrot explorer with progressive rendering, adaptive
 anti-aliasing, and drag-to-zoom selection. Rendering runs in a Web Worker;
 the Python script is a static file server.
