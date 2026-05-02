@@ -55,13 +55,24 @@ browser; no third-party runtime dependencies.
 
 ## Tests
 
-Tests run with the standard library:
+Python tests cover the static server, HTML structure, and worker pipeline
+contract:
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
 ```
 
 Or with `pytest` (see [requirements-dev.txt](requirements-dev.txt)).
+
+JavaScript unit tests cover the worker's pure math/color functions
+(`mandelbrotColor`, `colorAt`, `isProbablyInside`, adaptive AA helpers,
+etc.). They run on Node's built-in test runner with no dependencies:
+
+```bash
+node --test tests/test_worker.js
+```
+
+Requires Node 18 or newer.
 
 ## Views
 
