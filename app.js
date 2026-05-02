@@ -344,10 +344,16 @@ function clearSelection() {
 
 worker.addEventListener("message", (event) => showRenderedFrame(event.data));
 worker.addEventListener("error", (event) => {
-  const message = event.message || "unknown";
-  const file = event.filename ? event.filename.split("/").pop() : "?";
-  const line = event.lineno || "?";
-  meter.textContent = `worker error: ${message} (${file}:${line})`;
+  // Worker load failure (404, network) fires a plain Event with no fields.
+  // A runtime error inside a loaded worker fires an ErrorEvent with
+  // message/filename/lineno populated.
+  if (event instanceof ErrorEvent && event.message) {
+    const file = event.filename ? event.filename.split("/").pop() : "?";
+    const line = event.lineno || "?";
+    meter.textContent = `worker error: ${event.message} (${file}:${line})`;
+  } else {
+    meter.textContent = "worker error: failed to load worker.js";
+  }
   console.error(event);
 });
 
