@@ -185,6 +185,8 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn(".toolbar.collapsed", css)
         self.assertIn('toolbar.classList.toggle("collapsed")', app)
         self.assertIn('collapsed ? "+" : "-"', app)
+        self.assertIn('aria-expanded', html)
+        self.assertIn('"aria-expanded", String(!collapsed)', app)
 
     def test_worker_render_pipeline_is_progressive_and_off_main_thread(self):
         app = read_static("app.js")

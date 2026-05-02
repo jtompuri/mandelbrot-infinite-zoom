@@ -33,3 +33,6 @@ Thumbs.db
 .codex
 # Local notes
 notes/
+
+# Benchmark / dev tools
+benchmark.html
