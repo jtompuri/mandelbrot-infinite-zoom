@@ -344,7 +344,10 @@ function clearSelection() {
 
 worker.addEventListener("message", (event) => showRenderedFrame(event.data));
 worker.addEventListener("error", (event) => {
-  meter.textContent = `worker error: ${event.message}`;
+  const message = event.message || "unknown";
+  const file = event.filename ? event.filename.split("/").pop() : "?";
+  const line = event.lineno || "?";
+  meter.textContent = `worker error: ${message} (${file}:${line})`;
   console.error(event);
 });
 
