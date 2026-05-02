@@ -64,10 +64,16 @@ class MandelbrotAppTests(unittest.TestCase):
             self.assertEqual(content_type, expected_content_type)
 
     def test_static_paths_cannot_escape_static_directory(self):
-        body, content_type = mandelbrot.read_static_file("/../mandelbrot.py")
-
-        self.assertIsNone(body)
-        self.assertIsNone(content_type)
+        for path in (
+            "/../mandelbrot.py",
+            "/../../etc/passwd",
+            "/./../mandelbrot.py",
+            "/.git/config",
+            "/subdir/../../mandelbrot.py",
+        ):
+            body, content_type = mandelbrot.read_static_file(path)
+            self.assertIsNone(body, path)
+            self.assertIsNone(content_type, path)
 
     def test_index_response_is_html_bytes(self):
         body = mandelbrot.index_response_body()

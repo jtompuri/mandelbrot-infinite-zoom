@@ -71,13 +71,13 @@ class MandelbrotHandler(BaseHTTPRequestHandler):
         return
 
 
-def find_free_port(preferred):
+def find_free_port(preferred, host):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
-        if probe.connect_ex(("127.0.0.1", preferred)) != 0:
+        if probe.connect_ex((host, preferred)) != 0:
             return preferred
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
-        probe.bind(("127.0.0.1", 0))
+        probe.bind((host, 0))
         return probe.getsockname()[1]
 
 
@@ -85,16 +85,26 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run a local Mandelbrot infinite zoom app."
     )
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Bind address (default: 127.0.0.1, local-only). "
+        "Use 0.0.0.0 only on trusted networks.",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Preferred port (falls back to OS-assigned if taken).",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open a browser on startup.",
+    )
     args = parser.parse_args()
 
-    port = (
-        find_free_port(args.port)
-        if args.host in ("127.0.0.1", "localhost")
-        else args.port
-    )
+    port = find_free_port(args.port, args.host)
     server = ThreadingHTTPServer((args.host, port), MandelbrotHandler)
     url = f"http://{args.host}:{port}/"
 
