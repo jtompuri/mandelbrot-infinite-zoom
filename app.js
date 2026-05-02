@@ -361,7 +361,9 @@ toggle.addEventListener("click", () => {
 collapseButton.addEventListener("click", () => {
   const collapsed = toolbar.classList.toggle("collapsed");
   collapseButton.textContent = collapsed ? "+" : "-";
-  collapseButton.title = collapsed ? "Show controls" : "Hide controls";
+  collapseButton.title = collapsed
+    ? "Show controls (Esc)"
+    : "Hide controls (Esc)";
   collapseButton.setAttribute(
     "aria-label",
     collapsed ? "Show controls" : "Hide controls",
@@ -443,6 +445,9 @@ addEventListener("keydown", (event) => {
   } else if (event.key === "ArrowDown") {
     event.preventDefault();
     panBy(0, step);
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    collapseButton.click();
   }
 });
 
