@@ -64,10 +64,16 @@ class MandelbrotAppTests(unittest.TestCase):
             self.assertEqual(content_type, expected_content_type)
 
     def test_static_paths_cannot_escape_static_directory(self):
-        body, content_type = mandelbrot.read_static_file("/../mandelbrot.py")
-
-        self.assertIsNone(body)
-        self.assertIsNone(content_type)
+        for path in (
+            "/../mandelbrot.py",
+            "/../../etc/passwd",
+            "/./../mandelbrot.py",
+            "/.git/config",
+            "/subdir/../../mandelbrot.py",
+        ):
+            body, content_type = mandelbrot.read_static_file(path)
+            self.assertIsNone(body, path)
+            self.assertIsNone(content_type, path)
 
     def test_index_response_is_html_bytes(self):
         body = mandelbrot.index_response_body()
@@ -185,6 +191,8 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn(".toolbar.collapsed", css)
         self.assertIn('toolbar.classList.toggle("collapsed")', app)
         self.assertIn('collapsed ? "+" : "-"', app)
+        self.assertIn('aria-expanded', html)
+        self.assertIn('"aria-expanded", String(!collapsed)', app)
 
     def test_worker_render_pipeline_is_progressive_and_off_main_thread(self):
         app = read_static("app.js")
@@ -229,9 +237,12 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn("const EDGE_CONTRAST = 72;", worker)
         self.assertIn("function mandelbrotColor(", worker)
         self.assertIn("function writePacked(", worker)
-        self.assertIn("colorDistance(centerColor, rightColor)", worker)
+        self.assertIn("colorDistance(centerColor, right)", worker)
         self.assertIn("if (contrast < FLAT_CONTRAST)", worker)
-        self.assertIn("if (contrast < EDGE_CONTRAST)", worker)
+        self.assertIn("contrast < EDGE_CONTRAST", worker)
+        self.assertIn("function sampleAt(", worker)
+        self.assertIn("function shouldSkipSupersample(", worker)
+        self.assertIn("function boxFilterAverage(", worker)
         self.assertNotIn("new Uint8ClampedArray(20)", worker)
         self.assertIn("activeToken", worker)
 

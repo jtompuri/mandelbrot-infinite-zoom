@@ -2,6 +2,8 @@ const INSIDE_RGB = (2 << 16) | (3 << 8) | 8;
 const LUT_SIZE = 2048;
 const FLAT_CONTRAST = 24;
 const EDGE_CONTRAST = 72;
+// Must match offset slider max in index.html.
+const COLOR_PERIOD = 167;
 
 const colorMaps = {
   aurora: [
@@ -178,7 +180,7 @@ function isProbablyInside(cx, cy) {
 }
 
 function packedColor(smooth, lut, colorDensity, gradientOffset) {
-  let t = (smooth * colorDensity + gradientOffset) / 167;
+  let t = (smooth * colorDensity + gradientOffset) / COLOR_PERIOD;
   let value = t - Math.floor(t);
   const index = Math.round(value * (LUT_SIZE - 1));
   return lut[index];
@@ -245,107 +247,37 @@ function colorDistance(left, right) {
   );
 }
 
-function sampleInto(job, offset, centerX, centerY) {
-  const {
-    data,
-    dx,
-    dy,
-    maxIter,
-    samples,
-    lut,
-    useAdaptive,
-    centroid,
-    colorDensity,
-    gradientOffset,
-  } = job;
+function sampleAt(job, x, y, withCentroid) {
+  return mandelbrotColor(
+    x,
+    y,
+    job.maxIter,
+    job.lut,
+    withCentroid ? job.centroid : null,
+    job.colorDensity,
+    job.gradientOffset,
+  );
+}
 
-  if (centroid !== null) centroid.pixels += 1;
+function shouldSkipSupersample(job, centerColor, cx, cy) {
+  const { dx, dy } = job;
+  const right = sampleAt(job, cx + dx * 0.45, cy, false);
+  const down = sampleAt(job, cx, cy + dy * 0.45, false);
+  let contrast =
+    colorDistance(centerColor, right) + colorDistance(centerColor, down);
 
-  if (samples === 1) {
-    writePacked(
-      data,
-      offset,
-      mandelbrotColor(
-        centerX,
-        centerY,
-        maxIter,
-        lut,
-        centroid,
-        colorDensity,
-        gradientOffset,
-      ),
-    );
-    return;
-  }
+  if (contrast < FLAT_CONTRAST) return true;
+  if (contrast >= EDGE_CONTRAST) return false;
 
-  let centerColor = 0;
+  const left = sampleAt(job, cx - dx * 0.45, cy, false);
+  const up = sampleAt(job, cx, cy - dy * 0.45, false);
+  contrast +=
+    colorDistance(centerColor, left) + colorDistance(centerColor, up);
+  return contrast < EDGE_CONTRAST;
+}
 
-  if (useAdaptive) {
-    centerColor = mandelbrotColor(
-      centerX,
-      centerY,
-      maxIter,
-      lut,
-      centroid,
-      colorDensity,
-      gradientOffset,
-    );
-    writePacked(data, offset, centerColor);
-
-    const rightColor = mandelbrotColor(
-      centerX + dx * 0.45,
-      centerY,
-      maxIter,
-      lut,
-      null,
-      colorDensity,
-      gradientOffset,
-    );
-    const downColor = mandelbrotColor(
-      centerX,
-      centerY + dy * 0.45,
-      maxIter,
-      lut,
-      null,
-      colorDensity,
-      gradientOffset,
-    );
-    let contrast =
-      colorDistance(centerColor, rightColor) +
-      colorDistance(centerColor, downColor);
-
-    if (contrast < FLAT_CONTRAST) {
-      return;
-    }
-
-    if (contrast < EDGE_CONTRAST) {
-      const leftColor = mandelbrotColor(
-        centerX - dx * 0.45,
-        centerY,
-        maxIter,
-        lut,
-        null,
-        colorDensity,
-        gradientOffset,
-      );
-      const upColor = mandelbrotColor(
-        centerX,
-        centerY - dy * 0.45,
-        maxIter,
-        lut,
-        null,
-        colorDensity,
-        gradientOffset,
-      );
-      contrast +=
-        colorDistance(centerColor, leftColor) +
-        colorDistance(centerColor, upColor);
-      if (contrast < EDGE_CONTRAST) {
-        return;
-      }
-    }
-  }
-
+function boxFilterAverage(job, offset, centerX, centerY) {
+  const { data, dx, dy, samples } = job;
   let red = 0;
   let green = 0;
   let blue = 0;
@@ -360,25 +292,34 @@ function sampleInto(job, offset, centerX, centerY) {
     const sampleY = subStartY + (sy + 0.5) * subStepY;
     for (let sx = 0; sx < samples; sx++) {
       const sampleX = subStartX + (sx + 0.5) * subStepX;
-      const color = mandelbrotColor(
-        sampleX,
-        sampleY,
-        maxIter,
-        lut,
-        null,
-        colorDensity,
-        gradientOffset,
-      );
+      const color = sampleAt(job, sampleX, sampleY, false);
       red += (color >> 16) & 255;
       green += (color >> 8) & 255;
       blue += color & 255;
     }
   }
 
-  data[offset] = red * invTotal;
-  data[offset + 1] = green * invTotal;
-  data[offset + 2] = blue * invTotal;
+  data[offset] = Math.round(red * invTotal);
+  data[offset + 1] = Math.round(green * invTotal);
+  data[offset + 2] = Math.round(blue * invTotal);
   data[offset + 3] = 255;
+}
+
+function sampleInto(job, offset, centerX, centerY) {
+  if (job.centroid !== null) job.centroid.pixels += 1;
+
+  if (job.samples === 1) {
+    writePacked(job.data, offset, sampleAt(job, centerX, centerY, true));
+    return;
+  }
+
+  if (job.useAdaptive) {
+    const centerColor = sampleAt(job, centerX, centerY, true);
+    writePacked(job.data, offset, centerColor);
+    if (shouldSkipSupersample(job, centerColor, centerX, centerY)) return;
+  }
+
+  boxFilterAverage(job, offset, centerX, centerY);
 }
 
 function createRenderJob(params) {

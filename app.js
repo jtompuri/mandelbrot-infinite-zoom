@@ -25,10 +25,12 @@ const densityReset = document.getElementById("density-reset");
 const offsetInput = document.getElementById("offset");
 const offsetValue = document.getElementById("offset-value");
 const offsetReset = document.getElementById("offset-reset");
-const QUALITY_DEFAULT = qualityInput.value;
-const SPEED_DEFAULT = speedInput.value;
-const DENSITY_DEFAULT = "1.00";
-const OFFSET_DEFAULT = "0";
+const QUALITY_DEFAULT = qualityInput.defaultValue;
+const SPEED_DEFAULT = speedInput.defaultValue;
+const DENSITY_DEFAULT = densityInput.defaultValue;
+const OFFSET_DEFAULT = offsetInput.defaultValue;
+const SCALE_OVERVIEW = 3.15;
+const SCALE_MIN = 1e-15;
 const meter = document.getElementById("meter");
 const fps = document.getElementById("fps");
 const selection = document.getElementById("selection");
@@ -37,7 +39,7 @@ const worker = new Worker("worker.js");
 
 let centerX = -0.743643887037151;
 let centerY = 0.13182590420533;
-let scale = 3.15;
+let scale = SCALE_OVERVIEW;
 let pendingHashUpdate = null;
 let animating = false;
 let frameTimes = [];
@@ -58,13 +60,9 @@ function readHashState() {
   const x = Number(params.get("x"));
   const y = Number(params.get("y"));
   const s = Number(params.get("s"));
-  if (
-    !Number.isFinite(x) ||
-    !Number.isFinite(y) ||
-    !Number.isFinite(s) ||
-    s <= 0
-  )
-    return null;
+  if (!Number.isFinite(x) || Math.abs(x) > 4) return null;
+  if (!Number.isFinite(y) || Math.abs(y) > 4) return null;
+  if (!Number.isFinite(s) || s <= 0 || s > 10) return null;
   return {
     x,
     y,
@@ -118,7 +116,7 @@ function applyHashState(state) {
 
 function writeHashState() {
   // Update URL hash with current view state.
-  if (pendingHashUpdate !== null) return;
+  if (pendingHashUpdate !== null) clearTimeout(pendingHashUpdate);
   pendingHashUpdate = setTimeout(() => {
     pendingHashUpdate = null;
     const params = new URLSearchParams();
@@ -150,8 +148,8 @@ function fitCanvas() {
 // Adjust max iterations based on zoom depth.
 function effectiveMaxIter() {
   const base = Number(qualityInput.value);
-  if (scale >= 3.15) return base;
-  const depth = Math.log10(3.15 / scale);
+  if (scale >= SCALE_OVERVIEW) return base;
+  const depth = Math.log10(SCALE_OVERVIEW / scale);
   const factor = 1 + 0.3 * depth;
   return Math.round(base * factor);
 }
@@ -183,8 +181,8 @@ function render() {
   };
 
   if (!hasFullFrame) {
-    meter.textContent = `rendering preview | ${maxIter} iterations | ${formatAaLabel(samples)} AA`;
-    worker.postMessage({ ...params, phase: "preview", previewScale: 4 });
+    meter.textContent = `rendering preview | ${maxIter} iterations | ${formatAaLabel(1)} AA`;
+    worker.postMessage({ ...params, phase: "preview", previewScale: 4, samples: 1 });
   }
   worker.postMessage({ ...params, phase: "full", previewScale: 1 });
 }
@@ -253,7 +251,7 @@ function zoomStep() {
   }
 
   scale *= 0.985 - speed * 0.205;
-  if (scale < 1e-15) scale = 3.15;
+  if (scale < SCALE_MIN) scale = SCALE_OVERVIEW;
 
   render();
 }
@@ -345,6 +343,10 @@ function clearSelection() {
 }
 
 worker.addEventListener("message", (event) => showRenderedFrame(event.data));
+worker.addEventListener("error", (event) => {
+  meter.textContent = `worker error: ${event.message}`;
+  console.error(event);
+});
 
 toggle.addEventListener("click", () => {
   animating = !animating;
@@ -364,6 +366,7 @@ collapseButton.addEventListener("click", () => {
     "aria-label",
     collapsed ? "Show controls" : "Hide controls",
   );
+  collapseButton.setAttribute("aria-expanded", String(!collapsed));
 });
 resetViewButton.addEventListener("click", () => setView(viewSelect.value));
 
@@ -392,15 +395,15 @@ saveButton.addEventListener("click", () => {
 
 function zoomBy(factor) {
   scale *= factor;
-  if (scale > 3.15) scale = 3.15;
-  if (scale < 1e-15) scale = 1e-15;
+  if (scale > SCALE_OVERVIEW) scale = SCALE_OVERVIEW;
+  if (scale < SCALE_MIN) scale = SCALE_MIN;
   render();
 }
 
 zoomInButton.addEventListener("click", () => zoomBy(0.75));
 zoomOutButton.addEventListener("click", () => zoomBy(1.25));
 zoomResetButton.addEventListener("click", () => {
-  scale = 3.15;
+  scale = SCALE_OVERVIEW;
   render();
 });
 
@@ -426,7 +429,7 @@ addEventListener("keydown", (event) => {
     zoomBy(1.25);
   } else if (event.key === "0") {
     event.preventDefault();
-    scale = 3.15;
+    scale = SCALE_OVERVIEW;
     render();
   } else if (event.key === "ArrowLeft") {
     event.preventDefault();
@@ -516,6 +519,14 @@ canvas.addEventListener(
 );
 
 addEventListener("resize", fitCanvas);
+
+addEventListener("hashchange", () => {
+  const state = readHashState();
+  if (state === null) return;
+  applyHashState(state);
+  hasFullFrame = false;
+  render();
+});
 
 const initialHashState = readHashState();
 if (initialHashState !== null) {
