@@ -193,6 +193,9 @@ class MandelbrotAppTests(unittest.TestCase):
         self.assertIn('collapsed ? "+" : "-"', app)
         self.assertIn('aria-expanded', html)
         self.assertIn('"aria-expanded", String(!collapsed)', app)
+        self.assertIn('event.key === "Escape"', app)
+        self.assertIn("collapseButton.click()", app)
+        self.assertIn("(Esc)", html)
 
     def test_worker_render_pipeline_is_progressive_and_off_main_thread(self):
         app = read_static("app.js")
